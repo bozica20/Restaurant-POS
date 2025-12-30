@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="mk">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icon.png">
+
+<script>
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('service-worker.js')
+    .then(()=>console.log('Service Worker Registered'));
+}
+</script>
+<meta charset="UTF-8">
+<meta name="viewport"content="width=device-width,initial-scale=1.0">
+<title>Kafana POS</title>
+<style>
+body{
+ font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+ background:#f2f2f2;
+ margin:0; padding:12px;
+}
+h2,h3{ margin:6px 0; }
+
+.masa{
+ display:inline-flex;
+ justify-content:center;
+ align-items:center;
+ width:120px;
+ height:90px;
+ margin:8px;
+ background:white;
+ border-radius:18px;
+ font-weight:bold;
+ font-size:20px;
+ box-shadow:0 4px 10px rgba(0,0,0,0.25);
+ cursor:pointer;
+ transition:0.2s;
+}
+.masa:hover{ transform:scale(1.05); }
+.zafatena{ background:#ffcc80; }
+
+button{
+ border:none;
+ border-radius:18px;
+ padding:14px 20px;
+ margin:6px;
+ background:#1976d2;
+ color:white;
+ font-size:20px;
+ cursor:pointer;
+ transition:0.2s;
+}
+button:hover{ opacity:0.9; }
+button.green{ background:#388e3c; }
+button.red{ background:#d32f2f; }
+
+.item{
+ background:white;
+ padding:14px;
+ margin:8px 0;
+ border-radius:16px;
+ box-shadow:0 2px 8px rgba(0,0,0,0.15);
+ display:flex;
+ justify-content: space-between;
+ align-items:center;
+ transition:0.3s;
+ font-size:18px;
+}
+.item.flash{
+ background:#c8e6c9;
+}
+
+.category{
+ background:#ddd;
+ padding:10px;
+ border-radius:12px;
+ margin-top:12px;
+ font-weight:bold;
+ font-size:18px;
+}
+
+.menu-item{
+ display:inline-block;
+ margin:6px;
+}
+
+.total{
+ font-size:22px;
+ font-weight:bold;
+ margin-top:12px;
+ text-align:right;
+}
+</style>
+</head>
+
+<body>
+
+<!-- ЕКРАН МАСИ -->
+<div id="screenMasi">
+ <h2>Маси</h2>
+ <h3>Дневен промет: <span id="promet">0</span> ден</h3>
+ <div id="masi"></div>
+</div>
+
+<!-- ЕКРАН МАСА -->
+<div id="screenMasa" style="display:none">
+ <button onclick="backToMasi()">⬅ Маси</button>
+ <h3 id="masaTitle"></h3>
+
+ <div id="items"></div>
+
+ <div class="total">Вкупно: <span id="total">0</span> ден</div>
+
+ <button class="green" onclick="openMenu()">➕ Додај</button>
+ <button class="red" onclick="clearMasa()">💰 Плати</button>
+</div>
+
+<!-- ЕКРАН МЕНИ -->
+<div id="screenMenu" style="display:none">
+ <button onclick="backToMasa()">⬅ Назад</button>
+ <h3>Мени</h3>
+ <div id="menu"></div>
+</div>
+
+<script>
+// ===== МЕНИ =====
+const menu = {
+ "Алкохолни":[
+  {id:1,name:"Скопско пиво",price:120},
+  {id:2,name:"Вино",price:150}
+ ],
+ "Безалкохолни":[
+  {id:3,name:"Кока кола",price:100},
+  {id:4,name:"Сок",price:100}
+ ],
+ "Скара":[
+  {id:5,name:"Ќебапи 10",price:300},
+  {id:6,name:"Ребра",price:350}
+ ]
+};
+
+// ===== МАСИ =====
+let masi = JSON.parse(localStorage.getItem("masi")) ||
+ Array.from({length:8},(_,i)=>({broj:i+1,naracki:[]}));
+
+let current=0;
+
+// ===== ДНЕВЕН ПРОМЕТ =====
+function todayKey(){
+ return "promet-"+new Date().toISOString().slice(0,10);
+}
+function getPromet(){
+ return Number(localStorage.getItem(todayKey()))||0;
+}
+function addPromet(x){
+ localStorage.setItem(todayKey(),getPromet()+x);
+ renderPromet();
+}
+function renderPromet(){
+ document.getElementById("promet").innerText=getPromet();
+}
+renderPromet();
+
+// ===== МАСИ =====
+function renderMasi(){
+ const d=document.getElementById("masi");
+ d.innerHTML="";
+ masi.forEach((m,i)=>{
+  let div=document.createElement("div");
+  div.className="masa"+(m.naracki.length?" zafatena":"");
+  div.innerText="Маса "+m.broj;
+  div.onclick=()=>openMasa(i);
+  d.appendChild(div);
+ });
+}
+renderMasi();
+
+// ===== НАВИГАЦИЈА =====
+function openMasa(i){
+ current=i;
+ screenMasi.style.display="none";
+ screenMasa.style.display="block";
+ masaTitle.innerText="Маса "+masi[i].broj;
+ renderMasa();
+}
+
+function backToMasi(){
+ save();
+ screenMasa.style.display="none";
+ screenMasi.style.display="block";
+ renderMasi();
+}
+
+function openMenu(){
+ screenMasa.style.display="none";
+ screenMenu.style.display="block";
+ renderMenu();
+}
+
+function backToMasa(){
+ screenMenu.style.display="none";
+ screenMasa.style.display="block";
+ renderMasa();
+}
+
+// ===== МЕНИ =====
+function renderMenu(){
+ const m=document.getElementById("menu");
+ m.innerHTML="";
+ for(let cat in menu){
+  m.innerHTML+=`<div class="category">${cat}</div>`;
+  menu[cat].forEach(it=>{
+   m.innerHTML+=`
+    <div class="menu-item">
+     <button class="green" onclick="addItem(${it.id})">
+      ${it.name}<br>${it.price} ден
+     </button>
+    </div>`;
+  });
+ }
+}
+
+// ===== ДОДАЈ =====
+function addItem(id){
+ let masa=masi[current];
+ let item;
+ for(let cat in menu){
+  item=menu[cat].find(x=>x.id===id);
+  if(item) break;
+ }
+ let n=masa.naracki.find(x=>x.id===id);
+ if(n) n.qty++;
+ else masa.naracki.push({...item,qty:1});
+ 
+ save();
+ renderMasa(); 
+ flashLastItem(); // визуелна потврда
+}
+
+// ===== ВИЗУЕЛНА ПОТВРДА НА ПОСЛЕДНИОТ АРТИКЛ =====
+function flashLastItem(){
+ const itemsDiv = document.getElementById("items");
+ if(itemsDiv.children.length === 0) return;
+ let last = itemsDiv.children[itemsDiv.children.length-1];
+ last.classList.add("flash");
+ setTimeout(()=>last.classList.remove("flash"),400);
+}
+
+// ===== МАСА =====
+function renderMasa(){
+ const d=document.getElementById("items");
+ d.innerHTML="";
+ let total=0;
+ masi[current].naracki.forEach((n,i)=>{
+  total+=n.qty*n.price;
+  d.innerHTML+=`
+   <div class="item">
+    ${n.name} (${n.price})
+    <button onclick="changeQty(${i},-1)">−</button>
+    ${n.qty}
+    <button onclick="changeQty(${i},1)">+</button>
+    = ${n.qty*n.price} ден
+   </div>`;
+ });
+ document.getElementById("total").innerText=total;
+}
+
+// ===== + / − =====
+function changeQty(i,d){
+ let n=masi[current].naracki[i];
+ n.qty+=d;
+ if(n.qty<=0) masi[current].naracki.splice(i,1);
+ renderMasa(); save();
+}
+
+// ===== ПЛАТИ =====
+function clearMasa(){
+ if(confirm("Да се наплати масата?")){
+  let s=0;
+  masi[current].naracki.forEach(n=>s+=n.qty*n.price);
+  addPromet(s);
+  masi[current].naracki=[];
+  save();
+  backToMasi();
+ }
+}
+
+// ===== SAVE =====
+function save(){
+ localStorage.setItem("masi",JSON.stringify(masi));
+}
+</script>
+
+</body>
+</html>
