@@ -111,6 +111,7 @@ button.red{ background:#d32f2f; }
 <div id="screenMasi">
  <h2>Маси</h2>
  <h3>Дневен промет: <span id="promet">0</span> ден</h3>
+ <button onclick="openReport()">📊 Извештај</button>
  <div id="masi"></div>
 </div>
 
@@ -129,6 +130,16 @@ button.red{ background:#d32f2f; }
  <button onclick="backToMasa()">⬅ Назад</button>
  <h3>Мени</h3>
  <div id="menu"></div>
+</div>
+
+ <!-- ИЗВЕШТАЈ -->
+<div id="screenReport" style="display:none">
+ <button onclick="backFromReport()">⬅ Назад</button>
+ <h3>Извештај по ден</h3>
+
+ <input type="date" id="reportDate" onchange="renderReport()" />
+
+ <div id="reportContent"></div>
 </div>
 
 <script>
@@ -345,6 +356,7 @@ function clearMasa(){
  if(confirm("Да се наплати масата?")){
   let s=0;
   masi[current].naracki.forEach(n=>s+=n.qty*n.price);
+  saveReport(masi[current].naracki);
   addPromet(s);
   masi[current].naracki=[];
   save(); backToMasi();
@@ -352,6 +364,73 @@ function clearMasa(){
 }
 
 function save(){ localStorage.setItem("masi",JSON.stringify(masi)); }
+ /* ===== ИЗВЕШТАЈ ===== */
+
+function reportKey(date){
+ return "report-" + date;
+}
+
+function saveReport(items){
+ const date = new Date().toISOString().slice(0,10);
+ let data = JSON.parse(localStorage.getItem(reportKey(date))) || {};
+
+ items.forEach(n=>{
+  // најди категорија
+  let category="";
+  for(let cat in menu){
+   if(menu[cat].some(i=>i.id===n.id)){
+    category=cat; break;
+   }
+  }
+
+  if(!data[category]) data[category]={};
+
+  if(!data[category][n.name]){
+   data[category][n.name]={ qty:0, sum:0 };
+  }
+
+  data[category][n.name].qty += n.qty;
+  data[category][n.name].sum += n.qty * n.price;
+ });
+
+ localStorage.setItem(reportKey(date),JSON.stringify(data));
+}
+
+function openReport(){
+ screenMasi.style.display="none";
+ screenReport.style.display="block";
+ document.getElementById("reportDate").value =
+  new Date().toISOString().slice(0,10);
+ renderReport();
+}
+
+function backFromReport(){
+ screenReport.style.display="none";
+ screenMasi.style.display="block";
+}
+
+function renderReport(){
+ const date=document.getElementById("reportDate").value;
+ const c=document.getElementById("reportContent");
+ c.innerHTML="";
+
+ const data=JSON.parse(localStorage.getItem(reportKey(date)));
+ if(!data){
+  c.innerHTML="<p>Нема податоци за овој ден</p>";
+  return;
+ }
+
+ for(let cat in data){
+  c.innerHTML+=`<h3>${cat}</h3>`;
+  for(let item in data[cat]){
+   const x=data[cat][item];
+   c.innerHTML+=`
+    <div class="item">
+     ${item} – ${x.qty} × = ${x.sum} ден
+    </div>`;
+  }
+ }
+}
 </script>
 
 </body>
