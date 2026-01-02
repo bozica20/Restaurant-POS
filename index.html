@@ -138,7 +138,7 @@ input{ width:80px; }
 </div>
 
 <script>
-/* ================== МЕНИ (НЕ Е МЕНУВАНО) ================== */
+/* ================== МЕНИ (ЦЕЛОСНО) ================== */
 const menu = {
  "Пиво":[
   {id:1,name:"Скопско",price:90},
@@ -159,10 +159,85 @@ const menu = {
   {id:14,name:"Узо",price:70},
   {id:15,name:"Вигор",price:60},
   {id:16,name:"Smirnoff",price:70}
+ ],
+ "Вино":[
+  {id:17,name:"Александрија Бело",price:600},
+  {id:18,name:"Александрија Црвено",price:600},
+  {id:19,name:"Александрија Розе",price:600},
+  {id:20,name:"Темјаника",price:600},
+  {id:21,name:"Смедеревка 1л",price:320},
+  {id:22,name:"Смедеревка 0.5",price:200},
+  {id:23,name:"Смедеревка 0.2",price:70},
+  {id:24,name:"Розе 1л",price:320},
+  {id:25,name:"Розе 0.5",price:200},
+  {id:26,name:"Розе 0.2",price:70}
+ ],
+ "Жестоки пијалоци":[
+  {id:27,name:"Коњак",price:60},
+  {id:28,name:"Шток",price:90},
+  {id:29,name:"Пелинковец Антик",price:90},
+  {id:30,name:"Јегер",price:110},
+  {id:31,name:"Џин",price:70},
+  {id:32,name:"Џејмисон",price:150}
+ ],
+ "Безалкохолни Пијалоци":[
+  {id:33,name:"Кока Кола",price:70},
+  {id:34,name:"Фанта",price:70},
+  {id:35,name:"Пепси",price:70},
+  {id:36,name:"Миринда",price:70},
+  {id:37,name:"Газоза",price:70},
+  {id:38,name:"7уп",price:70},
+  {id:39,name:"Џус",price:80},
+  {id:40,name:"Леден чај",price:90},
+  {id:41,name:"Вода Негазирана 0.25",price:40},
+  {id:42,name:"Вода Негазирана 0.75",price:80},
+  {id:43,name:"Вода Газирана 0.25",price:40},
+  {id:44,name:"Вода Газирана 0.75",price:80},
+  {id:45,name:"Кафе",price:40},
+  {id:46,name:"Еспресо",price:50},
+  {id:47,name:"Нескафе",price:40},
+  {id:48,name:"Чај",price:30}
+ ],
+ "Салати":[
+  {id:49,name:"Шопска",price:200},
+  {id:50,name:"Грчка",price:200},
+  {id:51,name:"Мешана",price:180},
+  {id:52,name:"Зелка",price:50},
+  {id:53,name:"Марула",price:60},
+  {id:54,name:"Таратор",price:100},
+  {id:55,name:"Маслинки",price:60},
+  {id:56,name:"Сирење",price:120}
+ ],
+ "Скара":[
+  {id:57,name:"Кебап",price:25},
+  {id:58,name:"Ајдучки кебап",price:30},
+  {id:59,name:"Плескавица",price:100},
+  {id:60,name:"Шарска",price:220},
+  {id:61,name:"Ребро",price:240},
+  {id:62,name:"Стек",price:170},
+  {id:63,name:"Батак",price:170},
+  {id:64,name:"Крилца",price:240},
+  {id:65,name:"Колбас",price:100},
+  {id:66,name:"Пафлак",price:220},
+  {id:67,name:"Суво месо",price:120}
+ ],
+ "Гарнир":[
+  {id:68,name:"Помфрит",price:130},
+  {id:69,name:"Помфрит со сирење",price:170},
+  {id:70,name:"Леб",price:20},
+  {id:71,name:"Пиперка",price:20}
+ ],
+ "Бургери":[
+  {id:72,name:"Хамбургер",price:150},
+  {id:73,name:"Чикен бургер",price:170}
+ ],
+ "Појадок":[
+  {id:74,name:"Омлет",price:140},
+  {id:75,name:"Јајца на око",price:100}
  ]
 };
 
-/* ================== ПОПИС (ИСТИ АРТИКЛИ КАКО МЕНИ) ================== */
+/* ================== ПОПИС ================== */
 let popis = JSON.parse(localStorage.getItem("popis")) || {};
 for(let cat in menu){
  menu[cat].forEach(it=>{
@@ -255,7 +330,7 @@ function renderMasa(){
     ${n.qty*n.price} ден
    </div>`;
  });
- totalEl.innerText=total;
+ document.getElementById("total").innerText=total;
 }
 
 /* ================== ПЛАЌАЊЕ ================== */
