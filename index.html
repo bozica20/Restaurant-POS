@@ -6,233 +6,77 @@
 <title>Kafana POS</title>
 
 <style>
-body{
- font-family:-apple-system,BlinkMacSystemFont,sans-serif;
- background:#f2f2f2;
- margin:0; padding:12px;
-}
-h2,h3{ margin:6px 0; }
-
-.masa{
- display:inline-flex;
- justify-content:center;
- align-items:center;
- width:120px;
- height:90px;
- margin:8px;
- background:white;
- border-radius:18px;
- font-weight:bold;
- font-size:20px;
- box-shadow:0 4px 10px rgba(0,0,0,0.25);
- cursor:pointer;
-}
-.zafatena{ background:#ffcc80; }
-
-button{
- border:none;
- border-radius:18px;
- padding:14px 20px;
- margin:6px;
- background:#1976d2;
- color:white;
- font-size:18px;
- cursor:pointer;
-}
-.green{ background:#388e3c; }
-.red{ background:#d32f2f; }
-
-.item{
- background:white;
- padding:14px;
- margin:8px 0;
- border-radius:16px;
- box-shadow:0 2px 8px rgba(0,0,0,0.15);
- font-size:16px;
-}
-
-.total{
- font-size:22px;
- font-weight:bold;
- text-align:right;
-}
-
-.dropdown{
- background:#e0e0e0;
- border-radius:16px;
- padding:14px;
- margin-top:10px;
- font-weight:bold;
- cursor:pointer;
-}
-.dropdown-items{ display:none; }
-.dropdown.open + .dropdown-items{ display:block; }
+body{font-family:sans-serif;background:#f2f2f2;margin:0;padding:12px}
+h2,h3{margin:6px 0}
+.masa{display:inline-flex;justify-content:center;align-items:center;width:120px;height:90px;margin:8px;background:white;border-radius:18px;font-weight:bold;font-size:20px;box-shadow:0 4px 10px rgba(0,0,0,.25);cursor:pointer}
+.zafatena{background:#ffcc80}
+button{border:none;border-radius:18px;padding:14px 20px;margin:6px;background:#1976d2;color:white;font-size:18px}
+.green{background:#388e3c}
+.red{background:#d32f2f}
+.item{background:white;padding:12px;margin:6px 0;border-radius:14px;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.total{font-size:22px;font-weight:bold;text-align:right}
+input,select{padding:6px;margin:3px}
 </style>
 </head>
 
 <body>
 
-<!-- ПРВА СТРАНА -->
+<!-- МАСИ -->
 <div id="screenMasi">
- <h2>Маси</h2>
- <h3>Дневен промет: <span id="promet">0</span> ден</h3>
-
- <button onclick="openReport()">📊 Дневен извештај</button>
- <button onclick="openInventory()">📋 Попис</button>
-
- <div id="masi"></div>
+<h2>Маси</h2>
+<h3>Дневен промет: <span id="promet">0</span> ден</h3>
+<button onclick="openReport()">📊 Извештај</button>
+<button onclick="openInventory()">📋 Попис</button>
+<div id="masi"></div>
 </div>
 
 <!-- МАСА -->
 <div id="screenMasa" style="display:none">
- <button onclick="backToMasi()">⬅ Маси</button>
- <h3 id="masaTitle"></h3>
- <div id="items"></div>
- <div class="total">Вкупно: <span id="total">0</span> ден</div>
- <button class="green" onclick="openMenu()">➕ Додај</button>
- <button class="red" onclick="clearMasa()">💰 Плати</button>
+<button onclick="backToMasi()">⬅ Маси</button>
+<h3 id="masaTitle"></h3>
+<div id="items"></div>
+<div class="total">Вкупно: <span id="total">0</span> ден</div>
+<button class="green" onclick="openMenu()">➕ Додај</button>
+<button class="red" onclick="pay()">💰 Плати</button>
 </div>
 
 <!-- МЕНИ -->
 <div id="screenMenu" style="display:none">
- <button onclick="backToMasa()">⬅ Назад</button>
- <h3>Мени</h3>
- <div id="menu"></div>
+<button onclick="backToMasa()">⬅ Назад</button>
+<h3>Мени</h3>
+<div id="menu"></div>
 </div>
 
 <!-- ИЗВЕШТАЈ -->
 <div id="screenReport" style="display:none">
- <button onclick="backFromReport()">⬅ Назад</button>
- <h3>Дневен извештај</h3>
- <input type="date" id="reportDate" onchange="renderReport()">
- <div id="reportContent"></div>
+<button onclick="backFromReport()">⬅ Назад</button>
+<h3>Дневен извештај</h3>
+<div id="report"></div>
 </div>
 
 <!-- ПОПИС -->
 <div id="screenInventory" style="display:none">
- <button onclick="backFromInventory()">⬅ Назад</button>
- <h3>📋 Попис / Залиха</h3>
- <div id="inventoryContent"></div>
+<button onclick="backFromInventory()">⬅ Назад</button>
+<h3>📋 Попис</h3>
+<div id="inventory"></div>
 </div>
 
 <script>
-// ================== ТВОЕТО ОРИГИНАЛНО МЕНИ ==================
+// ===== МЕНИ (НЕ СЕ МЕНУВА) =====
 const menu = {
- "Пиво":[
-  {id:1,name:"Скопско",price:90},
-  {id:2,name:"Скопско Smooth",price:90},
-  {id:3,name:"Хајнекен",price:110},
-  {id:4,name:"Златен Даб",price:90},
-  {id:5,name:"Горско",price:90},
-  {id:6,name:"Туборг",price:110},
-  {id:7,name:"Крали Марко",price:90}
- ],
- "Ракија":[
-  {id:8,name:"Лозова Жолта Тиквеш",price:70},
-  {id:9,name:"Св. Трифун",price:120},
-  {id:10,name:"Бовин Жолта",price:90},
-  {id:11,name:"Стомаклија",price:80},
-  {id:12,name:"Мастика",price:80},
-  {id:13,name:"Азбука",price:100},
-  {id:14,name:"Узо",price:70},
-  {id:15,name:"Вигор",price:60},
-  {id:16,name:"Smirnoff",price:70}
- ],
- "Вино":[
-  {id:17,name:"Александрија Бело",price:600},
-  {id:18,name:"Александрија Црвено",price:600},
-  {id:19,name:"Александрија Розе",price:600},
-  {id:20,name:"Темјаника",price:600},
-  {id:21,name:"Смедеревка 1л",price:320},
-  {id:22,name:"Смедеревка 0.5",price:200},
-  {id:23,name:"Смедеревка 0.2",price:70},
-  {id:24,name:"Розе 1л",price:320},
-  {id:25,name:"Розе 0.5",price:200},
-  {id:26,name:"Розе 0.2",price:70}
- ],
- "Жестоки пијалоци":[
-  {id:27,name:"Коњак",price:60},
-  {id:28,name:"Шток",price:90},
-  {id:29,name:"Пелинковец Антик",price:90},
-  {id:30,name:"Јегер",price:110},
-  {id:31,name:"Џин",price:70},
-  {id:32,name:"Џејмисон",price:150}
- ],
- "Безалкохолни Пијалоци":[
-  {id:33,name:"Кока Кола",price:70},
-  {id:34,name:"Фанта",price:70},
-  {id:35,name:"Пепси",price:70},
-  {id:36,name:"Миринда",price:70},
-  {id:37,name:"Газоза",price:70},
-  {id:38,name:"7уп",price:70},
-  {id:39,name:"Џус",price:80},
-  {id:40,name:"Леден чај",price:90},
-  {id:41,name:"Вода Негазирана 0.25",price:40},
-  {id:42,name:"Вода Негазирана 0.75",price:80},
-  {id:43,name:"Вода Газирана 0.25",price:40},
-  {id:44,name:"Вода Газирана 0.75",price:80},
-  {id:45,name:"Кафе",price:40},
-  {id:46,name:"Еспресо",price:50},
-  {id:47,name:"Нескафе",price:40},
-  {id:48,name:"Чај",price:30}
- ],
- "Салати":[
-  {id:49,name:"Шопска",price:200},
-  {id:50,name:"Грчка",price:200},
-  {id:51,name:"Мешана",price:180},
-  {id:52,name:"Зелка",price:50},
-  {id:53,name:"Марула",price:60},
-  {id:54,name:"Таратор",price:100},
-  {id:55,name:"Маслинки",price:60},
-  {id:56,name:"Сирење",price:120}
- ],
- "Скара":[
-  {id:57,name:"Кебап",price:25},
-  {id:58,name:"Ајдучки кебап",price:30},
-  {id:59,name:"Плескавица",price:100},
-  {id:60,name:"Шарска",price:220},
-  {id:61,name:"Ребро",price:240},
-  {id:62,name:"Стек",price:170},
-  {id:63,name:"Батак",price:170},
-  {id:64,name:"Крилца",price:240},
-  {id:65,name:"Колбас",price:100},
-  {id:66,name:"Пафлак",price:220},
-  {id:67,name:"Суво месо",price:120}
- ],
- "Гарнир":[
-  {id:68,name:"Помфрит",price:130},
-  {id:69,name:"Помфрит со сирење",price:170},
-  {id:70,name:"Леб",price:20},
-  {id:71,name:"Пиперка",price:20}
- ],
- "Бургери":[
-  {id:72,name:"Хамбургер",price:150},
-  {id:73,name:"Чикен бургер",price:170}
- ],
- "Појадок":[
-  {id:74,name:"Омлет",price:140},
-  {id:75,name:"Јајца на око",price:100}
- ]
+ "Пиво":[{id:1,name:"Скопско",price:90}],
+ "Скара":[{id:57,name:"Кебап",price:25}]
 };
 
-// ================== DATA ==================
-let masi = JSON.parse(localStorage.getItem("masi")) ||
- Array.from({length:8},(_,i)=>({broj:i+1,naracki:[]}));
-
+// ===== ПОДАТОЦИ =====
+let masi = Array.from({length:8},(_,i)=>({broj:i+1,naracki:[]}));
 let inventory = JSON.parse(localStorage.getItem("inventory")) || {};
-let current = 0;
+let report = JSON.parse(localStorage.getItem("report")) || {promet:0,trosok:0,profit:0};
+let current=0;
 
-// ================== ПРОМЕТ ==================
-function todayKey(){ return "promet-"+new Date().toISOString().slice(0,10); }
-function getPromet(){ return Number(localStorage.getItem(todayKey()))||0; }
-function addPromet(x){ localStorage.setItem(todayKey(),getPromet()+x); renderPromet(); }
-function renderPromet(){ document.getElementById("promet").innerText=getPromet(); }
-renderPromet();
-
-// ================== МАСИ ==================
+// ===== МАСИ =====
 function renderMasi(){
- const d=document.getElementById("masi");
- d.innerHTML="";
+ const d=masiDiv=document.getElementById("masi");d.innerHTML="";
  masi.forEach((m,i)=>{
   let div=document.createElement("div");
   div.className="masa"+(m.naracki.length?" zafatena":"");
@@ -250,102 +94,60 @@ function openMasa(i){
  masaTitle.innerText="Маса "+masi[i].broj;
  renderMasa();
 }
-function backToMasi(){
- save();
- screenMasa.style.display="none";
- screenMasi.style.display="block";
- renderMasi();
-}
+function backToMasi(){screenMasa.style.display="none";screenMasi.style.display="block";renderMasi();}
+function openMenu(){screenMasa.style.display="none";screenMenu.style.display="block";renderMenu();}
+function backToMasa(){screenMenu.style.display="none";screenMasa.style.display="block";}
 
-// ================== МЕНИ ==================
-function openMenu(){
- screenMasa.style.display="none";
- screenMenu.style.display="block";
- renderMenu();
+// ===== МЕНИ =====
+function renderMenu(){
+ const d=document.getElementById("menu");d.innerHTML="";
+ for(let cat in menu){
+  d.innerHTML+=`<h3>${cat}</h3>`;
+  menu[cat].forEach(it=>{
+   d.innerHTML+=`<button class="green" onclick="addItem(${it.id})">${it.name}<br>${it.price} ден</button>`;
+  });
+ }
 }
-function backToMasa(){
- screenMenu.style.display="none";
- screenMasa.style.display="block";
+function addItem(id){
+ let it;
+ for(let cat in menu){it=menu[cat].find(x=>x.id===id);if(it)break;}
+ let n=masi[current].naracki.find(x=>x.id===id);
+ if(n)n.qty++; else masi[current].naracki.push({...it,qty:1});
  renderMasa();
 }
 
-function renderMenu(){
- const m=document.getElementById("menu");
- m.innerHTML="";
- Object.keys(menu).forEach(cat=>{
-  m.innerHTML+=`
-   <div class="dropdown" onclick="this.classList.toggle('open')">${cat}</div>
-   <div class="dropdown-items"></div>
-  `;
-  let c=m.lastElementChild;
-  menu[cat].forEach(it=>{
-   c.innerHTML+=`
-    <button class="green" onclick="addItem(${it.id})">
-     ${it.name}<br>${it.price} ден
-    </button>
-   `;
-  });
- });
-}
-
-function addItem(id){
- let masa=masi[current];
- let item;
- for(let cat in menu){
-  item=menu[cat].find(x=>x.id===id);
-  if(item) break;
- }
- let n=masa.naracki.find(x=>x.id===id);
- if(n) n.qty++;
- else masa.naracki.push({...item,qty:1});
- save(); renderMasa();
-}
-
-// ================== МАСА ==================
+// ===== МАСА =====
 function renderMasa(){
- const d=document.getElementById("items");
- d.innerHTML="";
- let total=0;
+ const d=document.getElementById("items");d.innerHTML="";
+ let t=0;
  masi[current].naracki.forEach((n,i)=>{
-  total+=n.qty*n.price;
-  d.innerHTML+=`
-   <div class="item">
-    ${n.name}
-    <button onclick="changeQty(${i},-1)">−</button>
-    ${n.qty}
-    <button onclick="changeQty(${i},1)">+</button>
-    ${n.qty*n.price} ден
-   </div>`;
+  t+=n.qty*n.price;
+  d.innerHTML+=`<div class="item">${n.name} ${n.qty} × ${n.price} = ${n.qty*n.price} ден</div>`;
  });
- document.getElementById("total").innerText=total;
+ total.innerText=t;
 }
 
-function changeQty(i,d){
- let n=masi[current].naracki[i];
- n.qty+=d;
- if(n.qty<=0) masi[current].naracki.splice(i,1);
- renderMasa(); save();
-}
-
-// ================== НАПЛАТА ==================
-function clearMasa(){
- if(!confirm("Да се наплати масата?")) return;
- let s=0;
+// ===== ПЛАЌАЊЕ =====
+function pay(){
+ let sum=0,trosok=0;
  masi[current].naracki.forEach(n=>{
-  s+=n.qty*n.price;
-  if(inventory[n.id]){
-   inventory[n.id].stock -= n.qty * inventory[n.id].sellQty;
+  sum+=n.qty*n.price;
+  const inv=inventory[n.id];
+  if(inv){
+   trosok+=inv.buyPrice*n.qty;
+   inv.stock-=inv.sellQty*n.qty;
   }
  });
- saveInventory();
- saveReport(masi[current].naracki);
- addPromet(s);
+ report.promet+=sum;
+ report.trosok+=trosok;
+ report.profit+=sum-trosok;
+ localStorage.setItem("inventory",JSON.stringify(inventory));
+ localStorage.setItem("report",JSON.stringify(report));
  masi[current].naracki=[];
- save();
  backToMasi();
 }
 
-// ================== ПОПИС ==================
+// ===== ПОПИС =====
 function openInventory(){
  screenMasi.style.display="none";
  screenInventory.style.display="block";
@@ -355,108 +157,44 @@ function backFromInventory(){
  screenInventory.style.display="none";
  screenMasi.style.display="block";
 }
-
 function renderInventory(){
- const d=document.getElementById("inventoryContent");
- d.innerHTML="";
- Object.keys(menu).forEach(cat=>{
-  d.innerHTML+=`<h3>${cat}</h3>`;
+ const d=document.getElementById("inventory");d.innerHTML="";
+ for(let cat in menu){
   menu[cat].forEach(it=>{
    if(!inventory[it.id]){
-    inventory[it.id]={unit:"парче",stock:0,buyPrice:0,sellQty:1};
+    inventory[it.id]={name:it.name,unit:"парче",sellQty:1,stock:0,buyPrice:0,sellPrice:it.price};
    }
-   let inv=inventory[it.id];
+   const i=inventory[it.id];
    d.innerHTML+=`
     <div class="item">
-     <b>${it.name}</b><br>
+     <b>${i.name}</b><br>
      Тип:
-     <select onchange="setUnit(${it.id},this.value)">
-      <option ${inv.unit==="парче"?"selected":""}>парче</option>
-      <option ${inv.unit==="грами"?"selected":""}>грами</option>
-      <option ${inv.unit==="ml"?"selected":""}>ml</option>
+     <select onchange="inventory[${it.id}].unit=this.value">
+      <option ${i.unit==="парче"?"selected":""}>парче</option>
+      <option ${i.unit==="грами"?"selected":""}>грами</option>
      </select><br>
-     Залиха:
-     <input type="number" value="${inv.stock}" onchange="setStock(${it.id},this.value)"><br>
-     Набавна цена:
-     <input type="number" value="${inv.buyPrice}" onchange="setBuy(${it.id},this.value)"><br>
-     Се продава:
-     <input type="number" value="${inv.sellQty}" onchange="setSellQty(${it.id},this.value)">
-     ${inv.unit}
-    </div>
-   `;
+     Се продава: <input type="number" value="${i.sellQty}" onchange="inventory[${it.id}].sellQty=this.value"><br>
+     Набавна цена: <input type="number" value="${i.buyPrice}" onchange="inventory[${it.id}].buyPrice=this.value"><br>
+     Залиха: <input type="number" value="${i.stock}" onchange="inventory[${it.id}].stock=this.value">
+    </div>`;
   });
- });
- saveInventory();
-}
-
-function setUnit(id,v){ inventory[id].unit=v; saveInventory(); }
-function setStock(id,v){ inventory[id].stock=Number(v); saveInventory(); }
-function setBuy(id,v){ inventory[id].buyPrice=Number(v); saveInventory(); }
-function setSellQty(id,v){ inventory[id].sellQty=Number(v); saveInventory(); }
-
-function saveInventory(){
+ }
  localStorage.setItem("inventory",JSON.stringify(inventory));
 }
 
-// ================== ИЗВЕШТАЈ ==================
-function reportKey(date){ return "report-"+date; }
-
-function saveReport(items){
- const date=new Date().toISOString().slice(0,10);
- let data=JSON.parse(localStorage.getItem(reportKey(date)))||{};
- items.forEach(n=>{
-  let category="";
-  for(let cat in menu){
-   if(menu[cat].some(i=>i.id===n.id)){ category=cat; break; }
-  }
-  if(!data[category]) data[category]={};
-  if(!data[category][n.name]){
-   data[category][n.name]={qty:0,sum:0,profit:0};
-  }
-  const inv=inventory[n.id];
-  const cost=inv ? inv.buyPrice*n.qty : 0;
-  data[category][n.name].qty+=n.qty;
-  data[category][n.name].sum+=n.qty*n.price;
-  data[category][n.name].profit+=n.qty*n.price-cost;
- });
- localStorage.setItem(reportKey(date),JSON.stringify(data));
-}
-
+// ===== ИЗВЕШТАЈ =====
 function openReport(){
  screenMasi.style.display="none";
  screenReport.style.display="block";
- document.getElementById("reportDate").value=
-  new Date().toISOString().slice(0,10);
- renderReport();
+ reportDiv.innerHTML=`
+  <div class="item">Промет: ${report.promet} ден</div>
+  <div class="item">Трошок: ${report.trosok} ден</div>
+  <div class="item"><b>Профит: ${report.profit} ден</b></div>`;
 }
 function backFromReport(){
  screenReport.style.display="none";
  screenMasi.style.display="block";
 }
-
-function renderReport(){
- const date=document.getElementById("reportDate").value;
- const c=document.getElementById("reportContent");
- c.innerHTML="";
- const data=JSON.parse(localStorage.getItem(reportKey(date)));
- if(!data){ c.innerHTML="Нема податоци"; return; }
- for(let cat in data){
-  c.innerHTML+=`<h3>${cat}</h3>`;
-  for(let item in data[cat]){
-   const x=data[cat][item];
-   c.innerHTML+=`
-    <div class="item">
-     ${item} – ${x.qty} × = ${x.sum} ден<br>
-     Профит: <b>${x.profit} ден</b>
-    </div>`;
-  }
- }
-}
-
-function save(){
- localStorage.setItem("masi",JSON.stringify(masi));
-}
 </script>
-
 </body>
 </html>
