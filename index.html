@@ -18,7 +18,7 @@ button.red{ background:#d32f2f; }
 .dropdown-items{ display:none; margin-top:10px; }
 .dropdown.open + .dropdown-items{ display:block; }
 .menu-item{ display:inline-block; margin:6px; }
-input[type=number]{ width:60px; font-size:16px; padding:4px; border-radius:8px; border:1px solid #ccc; }
+input[type=number], input[type=text], select{ font-size:16px; padding:4px; border-radius:6px; border:1px solid #ccc; margin:2px; }
 table{ width:100%; border-collapse: collapse; margin-top:12px; }
 th,td{ border:1px solid #ccc; padding:6px; text-align:center; }
 th{ background:#ddd; }
@@ -30,8 +30,7 @@ th{ background:#ddd; }
 <div id="ekranMasi">
  <h2>Маси</h2>
  <h3>Дневен промет: <span id="promet">0</span> ден</h3>
- <button onclick="otvoriIzvestaj()">📊 Извештај</button>
- <button onclick="otvoriPopis()">📦 Попис</button>
+ <button onclick="otvoriPopis()">📦 Попис / Додај артикл</button>
  <div id="masi"></div>
 </div>
 
@@ -52,41 +51,50 @@ th{ background:#ddd; }
  <div id="meni"></div>
 </div>
 
-<!-- ИЗВЕШТАЈ -->
-<div id="ekranIzvestaj" style="display:none">
- <button onclick="nazadIzvestaj()">⬅ Назад</button>
- <h3>Извештај по ден</h3>
- <input type="date" id="datumIzvestaj" onchange="prikaziIzvestaj()" />
- <div id="sodrzinaIzvestaj"></div>
-</div>
-
 <!-- ПОПИС -->
 <div id="ekranPopis" style="display:none">
   <button onclick="nazadPopis()">⬅ Назад</button>
   <h3>Попис / Инвентар</h3>
   <div id="sodrzinaPopis"></div>
+
+  <h3>Додај нов артикл</h3>
+  <div>
+    Име: <input type="text" id="novoIme">
+    Тип: <select id="novoUnit">
+      <option value="pcs">Парче</option>
+      <option value="kg">Килограм</option>
+    </select>
+    Количина: <input type="number" id="novoQty" value="1" min="0">
+    Цена на купување: <input type="number" id="novoCost" value="0" min="0">
+    Цена на продажба: <input type="number" id="novoPrice" value="0" min="0">
+    <span id="novoPortionContainer" style="display:none;">
+      Дел за продажба (kg): <input type="number" id="novoPortion" value="0.1" step="0.1" min="0">
+    </span>
+    <button onclick="dodadiNovArtikl()">➕ Додај</button>
+  </div>
 </div>
 
 <script>
-// ===== МЕНИ =====
+// ===== ПРИМЕР МЕНИ: ПИЈАЛАЦИ И СКАРА =====
 const meni = {
  "Пиво":[
-   {id:1,name:"Скопско",price:90,unit:"pcs",costPerUnit:90},
-   {id:2,name:"Скопско Смус",price:90,unit:"pcs",costPerUnit:90}
+   {id:1,name:"Скопско",price:90,unit:"pcs"},
+   {id:2,name:"Скопско Смус",price:90,unit:"pcs"}
  ],
  "Скара":[
-   {id:57,name:"Кебап",price:120,unit:"kg",costPerKg:1200,salePerPortion:0.4},
-   {id:58,name:"Ајдучки кебап",price:150,unit:"kg",costPerKg:1500,salePerPortion:0.4}
+   {id:57,name:"Кебап",price:120,unit:"kg",salePerPortion:0.4},
+   {id:58,name:"Ајдучки кебап",price:150,unit:"kg",salePerPortion:0.4}
  ]
 };
 
-// ===== ПОПИС / СКЛАДИШТЕ =====
+// ===== ПОПИС =====
 let popis = JSON.parse(localStorage.getItem("popis")) || {};
+// автоматски ги додава артиклите од мени ако нема во попис
 for(let kat in meni){
   meni[kat].forEach(it=>{
     if(!popis[it.name]){
-      if(it.unit=="pcs") popis[it.name]={qty:50,sold:0,revenue:0,price:it.price,costPerUnit:it.costPerUnit,unit:"pcs"};
-      else popis[it.name]={qty:5,sold:0,revenue:0,price:it.price,costPerKg:it.costPerKg,salePerPortion:it.salePerPortion,unit:"kg"};
+      if(it.unit=="pcs") popis[it.name]={qty:50,sold:0,revenue:0,price:it.price,costPerUnit:it.price,unit:"pcs"};
+      else popis[it.name]={qty:5,sold:0,revenue:0,price:it.price,costPerKg:it.price,salePerPortion:it.salePerPortion,unit:"kg"};
     }
   });
 }
@@ -117,7 +125,7 @@ function prikaziMasi(){
 prikaziMasi();
 
 // ===== МАСА =====
-function otvoriMasa(i){ tekovna=i; ekranMasi.style.display="none"; ekranMasa.style.display="block"; imeMasa.innerText="Маса "+masi[i].broj; prikaziMasaArtikli(); }
+function otvoriMasa(i){ tekovna=i; ekranMasi.style.display="none"; ekranMasa.style.display="block"; document.getElementById("imeMasa").innerText="Маса "+masi[i].broj; prikaziMasaArtikli(); }
 function nazadMasi(){ sacuvaj(); ekranMasa.style.display="none"; ekranMasi.style.display="block"; prikaziMasi(); }
 function otvoriMeni(){ ekranMasa.style.display="none"; ekranMeni.style.display="block"; prikaziMeni(); }
 function nazadMasa(){ ekranMeni.style.display="none"; ekranMasa.style.display="block"; prikaziMasaArtikli(); }
@@ -137,7 +145,7 @@ function prikaziMeni(){
 }
 function otvoriKategorija(el){ document.querySelectorAll(".dropdown").forEach(d=>{if(d!==el)d.classList.remove("open");}); el.classList.toggle("open"); }
 
-// ===== ДОДАВАЊЕ =====
+// ===== ДОДАВАЊЕ АРТИКЛИ ВО МАСА =====
 function dodadiArtikl(id){
   let masa=masi[tekovna]; let item;
   for(let kat in meni){ item=meni[kat].find(x=>x.id===id); if(item) break; }
@@ -197,6 +205,13 @@ function naplatiMasa(){
 }
 
 // ===== ПОПИС =====
+const unitSelect = document.getElementById("novoUnit");
+const portionContainer = document.getElementById("novoPortionContainer");
+unitSelect.onchange = ()=> {
+  if(unitSelect.value=="kg") portionContainer.style.display="inline";
+  else portionContainer.style.display="none";
+};
+
 function otvoriPopis(){ ekranMasi.style.display="none"; ekranPopis.style.display="block"; prikaziPopis(); }
 function nazadPopis(){ ekranPopis.style.display="none"; ekranMasi.style.display="block"; }
 function prikaziPopis(){
@@ -210,7 +225,7 @@ function prikaziPopis(){
       else trosok=s.sold*s.salePerPortion*s.costPerKg;
       let profit=s.revenue-trosok;
       c.innerHTML+=`<tr>
-        <td>${it.name}</td><td>${it.unit}</td>
+        <td>${it.name}</td><td>${s.unit}</td>
         <td><input type="number" value="${s.qty}" min="0" onchange="promeniPopis('${it.name}',this.value)"></td>
         <td>${s.sold}</td><td>${s.revenue}</td><td>${trosok}</td><td>${profit}</td>
       </tr>`;
@@ -218,22 +233,27 @@ function prikaziPopis(){
     c.innerHTML+="</table>";
   }
 }
+
 function promeniPopis(ime,val){ popis[ime].qty=Number(val); sacuvajPopis(); }
 
-// ===== ИЗВЕШТАЈ =====
-function otvoriIzvestaj(){ ekranMasi.style.display="none"; ekranIzvestaj.style.display="block"; datumIzvestaj.value=new Date().toISOString().slice(0,10); prikaziIzvestaj(); }
-function nazadIzvestaj(){ ekranIzvestaj.style.display="none"; ekranMasi.style.display="block"; }
-function prikaziIzvestaj(){
-  const datum=document.getElementById("datumIzvestaj").value; const c=document.getElementById("sodrzinaIzvestaj"); c.innerHTML="";
-  const data=JSON.parse(localStorage.getItem("report-"+datum));
-  if(!data){ c.innerHTML="<p>Нема податоци за овој ден</p>"; return; }
-  for(let kat in data){
-    c.innerHTML+=`<h3>${kat}</h3>`;
-    for(let item in data[kat]){
-      const x=data[kat][item];
-      c.innerHTML+=`<div class="item">${item} – ${x.qty} × = ${x.sum} ден</div>`;
-    }
+function dodadiNovArtikl(){
+  const ime = document.getElementById("novoIme").value.trim();
+  const unit = document.getElementById("novoUnit").value;
+  const qty = Number(document.getElementById("novoQty").value);
+  const cost = Number(document.getElementById("novoCost").value);
+  const price = Number(document.getElementById("novoPrice").value);
+  const portion = Number(document.getElementById("novoPortion").value);
+
+  if(!ime || qty<=0 || cost<0 || price<0){ alert("Пополнете ги сите полиња!"); return; }
+  if(popis[ime]){ alert("Артиклот веќе постои!"); return; }
+
+  if(unit=="pcs"){
+    popis[ime]={qty:qty,sold:0,revenue:0,price:price,costPerUnit:cost,unit:"pcs"};
+  } else {
+    popis[ime]={qty:qty,sold:0,revenue:0,price:price,costPerKg:cost,salePerPortion:portion,unit:"kg"};
   }
+  sacuvajPopis(); prikaziPopis();
+  alert("Артикл додаден!");
 }
 
 // ===== ЗАЧУВАЈ =====
