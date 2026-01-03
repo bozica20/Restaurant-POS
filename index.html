@@ -5,25 +5,82 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kafana POS</title>
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
 <style>
-body{ font-family:-apple-system,BlinkMacSystemFont,sans-serif; background:#f2f2f2; margin:0; padding:12px;}
+body{
+ font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+ background:#f2f2f2;
+ margin:0; padding:12px;
+}
 h2,h3{ margin:6px 0; }
-.masa{ display:inline-flex; justify-content:center; align-items:center; width:120px; height:90px; margin:8px; background:white; border-radius:18px; font-weight:bold; font-size:20px; box-shadow:0 4px 10px rgba(0,0,0,0.25); cursor:pointer; transition:0.2s; }
+.masa{
+ display:inline-flex;
+ justify-content:center;
+ align-items:center;
+ width:120px;
+ height:90px;
+ margin:8px;
+ background:white;
+ border-radius:18px;
+ font-weight:bold;
+ font-size:20px;
+ box-shadow:0 4px 10px rgba(0,0,0,0.25);
+ cursor:pointer;
+ transition:0.2s;
+}
 .zafatena{ background:#ffcc80; }
-button{ border:none; border-radius:18px; padding:14px 20px; margin:6px; background:#1976d2; color:white; font-size:20px; cursor:pointer; }
+button{
+ border:none;
+ border-radius:18px;
+ padding:14px 20px;
+ margin:6px;
+ background:#1976d2;
+ color:white;
+ font-size:20px;
+ cursor:pointer;
+}
 button.green{ background:#388e3c; }
 button.red{ background:#d32f2f; }
-.item{ background:white; padding:14px; margin:8px 0; border-radius:16px; box-shadow:0 2px 8px rgba(0,0,0,0.15); display:flex; justify-content:space-between; align-items:center; font-size:18px;}
+.item{
+ background:white;
+ padding:14px;
+ margin:8px 0;
+ border-radius:16px;
+ box-shadow:0 2px 8px rgba(0,0,0,0.15);
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ font-size:18px;
+}
 .item.flash{ background:#c8e6c9; }
-.total{ font-size:22px; font-weight:bold; margin-top:12px; text-align:right;}
-.dropdown{ background:#e0e0e0; border-radius:16px; margin-top:12px; padding:16px; font-size:22px; font-weight:bold; display:flex; justify-content:space-between; align-items:center; cursor:pointer;}
-.dropdown-items{ display:none; margin-top:10px;}
-.dropdown.open + .dropdown-items{ display:block;}
-.menu-item{ display:inline-block; margin:6px;}
+.total{
+ font-size:22px;
+ font-weight:bold;
+ margin-top:12px;
+ text-align:right;
+}
+.dropdown{
+ background:#e0e0e0;
+ border-radius:16px;
+ margin-top:12px;
+ padding:16px;
+ font-size:22px;
+ font-weight:bold;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ cursor:pointer;
+}
+.dropdown-items{
+ display:none;
+ margin-top:10px;
+}
+.dropdown.open + .dropdown-items{
+ display:block;
+}
+.menu-item{
+ display:inline-block;
+ margin:6px;
+}
 </style>
 </head>
 <body>
@@ -61,8 +118,12 @@ button.red{ background:#d32f2f; }
  <div id="reportContent"></div>
 </div>
 
+<!-- FIREBASE SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
 <script>
-/* ===== FIREBASE CONFIG ===== */
+// ===== FIREBASE CONFIG =====
 const firebaseConfig = {
   apiKey: "AIzaSyC5nGrcqQrmgIInhCj2GQOH4EUdgms_-q8",
   authDomain: "restaurant-pos-ed33e.firebaseapp.com",
@@ -76,83 +137,159 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-/* ===== МЕНИ ===== */
+// ===== МЕНИ =====
 const menu = {
- "Пиво":[ {id:1,name:"Скопско",price:90},{id:2,name:"Скопско Smooth",price:90},{id:3,name:"Хајнекен",price:110},{id:4,name:"Златен Даб",price:90},{id:5,name:"Горско",price:90},{id:6,name:"Туборг",price:110},{id:7,name:"Крали Марко",price:90}],
- "Ракија":[ {id:8,name:"Лозова Жолта Тиквеш",price:70},{id:9,name:"Св. Трифун",price:120},{id:10,name:"Бовин Жолта",price:90},{id:11,name:"Стомаклија",price:80},{id:12,name:"Мастика",price:80},{id:13,name:"Азбука",price:100},{id:14,name:"Узо",price:70},{id:15,name:"Вигор",price:60},{id:16,name:"Smirnoff",price:70},{id:17,name:"Жолта Бокал 0,25",price:300}],
- "Вино":[{id:18,name:"Александрија Бело",price:600},{id:19,name:"Александрија Црвено",price:600},{id:20,name:"Александрија Розе",price:600},{id:21,name:"Темјаника",price:600},{id:22,name:"Смедеревка 1л",price:320},{id:23,name:"Смедеревка 0.5",price:200},{id:24,name:"Смедеревка 0.2",price:70},{id:25,name:"Розе 1л",price:320},{id:26,name:"Розе 0.5",price:200},{id:27,name:"Розе 0.2",price:70}],
- "Жестоки пијалоци":[{id:28,name:"Коњак",price:60},{id:29,name:"Шток",price:90},{id:30,name:"Пелинковец Антик",price:90},{id:31,name:"Јегер",price:110},{id:32,name:"Џин",price:70},{id:33,name:"Џејмисон",price:150}],
- "Безалкохолни Пијалоци":[{id:34,name:"Кока Кола",price:70},{id:35,name:"Фанта",price:70},{id:36,name:"Пепси",price:70},{id:37,name:"Миринда",price:70},{id:38,name:"Газоза",price:70},{id:39,name:"7уп",price:70},{id:40,name:"Џус",price:80},{id:41,name:"Леден чај",price:90},{id:42,name:"Вода Негазирана 0.25",price:40},{id:43,name:"Вода Негазирана 0.75",price:80},{id:44,name:"Вода Газирана 0.25",price:40},{id:45,name:"Вода Газирана 0.75",price:80},{id:46,name:"Кафе",price:40},{id:47,name:"Еспресо",price:50},{id:48,name:"Нескафе",price:40},{id:49,name:"Чај",price:30}],
- "Салати":[{id:50,name:"Шопска",price:200},{id:51,name:"Грчка",price:200},{id:52,name:"Мешана",price:180},{id:53,name:"Зелка",price:50},{id:54,name:"Марула",price:60},{id:55,name:"Таратор",price:100},{id:56,name:"Маслинки",price:60},{id:57,name:"Сирење",price:120}],
- "Скара":[{id:58,name:"Кебап",price:25},{id:59,name:"Ајдучки кебап",price:30},{id:60,name:"Плескавица",price:100},{id:61,name:"Шарска",price:220},{id:62,name:"Ребро",price:240},{id:63,name:"Стек",price:170},{id:64,name:"Батак",price:170},{id:65,name:"Крилца",price:240},{id:66,name:"Колбас",price:100},{id:67,name:"Пафлак",price:220},{id:68,name:"Суво месо",price:120},{id:69,name:"Свински увијач",price:190},{id:70,name:"Шницла",price:220},{id:71,name:"Питии",price:200}],
- "Гарнир":[{id:72,name:"Помфрит",price:130},{id:73,name:"Помфрит со сирење",price:170},{id:74,name:"Леб",price:20},{id:75,name:"Пиперка",price:20},{id:76,name:"Нафора",price:80}],
- "Бургери":[{id:77,name:"Хамбургер",price:150},{id:78,name:"Чикен бургер",price:170}],
- "Појадок":[{id:79,name:"Омлет",price:140},{id:80,name:"Јајца на око",price:100}]
+ "Пиво":[
+  {id:1,name:"Скопско",price:90},
+  {id:2,name:"Скопско Smooth",price:90},
+  {id:3,name:"Хајнекен",price:110},
+  {id:4,name:"Златен Даб",price:90},
+  {id:5,name:"Горско",price:90},
+  {id:6,name:"Туборг",price:110},
+  {id:7,name:"Крали Марко",price:90}
+ ],
+ "Ракија":[
+  {id:8,name:"Лозова Жолта Тиквеш",price:70},
+  {id:9,name:"Св. Трифун",price:120},
+  {id:10,name:"Бовин Жолта",price:90},
+  {id:11,name:"Стомаклија",price:80},
+  {id:12,name:"Мастика",price:80},
+  {id:13,name:"Азбука",price:100},
+  {id:14,name:"Узо",price:70},
+  {id:15,name:"Вигор",price:60},
+  {id:16,name:"Smirnoff",price:70},
+  {id:17,name:"Жолта Бокал 0,25",price:300}
+ ],
+ "Вино":[
+  {id:18,name:"Александрија Бело",price:600},
+  {id:19,name:"Александрија Црвено",price:600},
+  {id:20,name:"Александрија Розе",price:600},
+  {id:21,name:"Темјаника",price:600},
+  {id:22,name:"Смедеревка 1л",price:320},
+  {id:23,name:"Смедеревка 0.5",price:200},
+  {id:24,name:"Смедеревка 0.2",price:70},
+  {id:25,name:"Розе 1л",price:320},
+  {id:26,name:"Розе 0.5",price:200},
+  {id:27,name:"Розе 0.2",price:70}
+ ],
+ "Жестоки пијалоци":[
+  {id:28,name:"Коњак",price:60},
+  {id:29,name:"Шток",price:90},
+  {id:30,name:"Пелинковец Антик",price:90},
+  {id:31,name:"Јегер",price:110},
+  {id:32,name:"Џин",price:70},
+  {id:33,name:"Џејмисон",price:150}
+ ],
+ "Безалкохолни Пијалоци":[
+  {id:34,name:"Кока Кола",price:70},
+  {id:35,name:"Фанта",price:70},
+  {id:36,name:"Пепси",price:70},
+  {id:37,name:"Миринда",price:70},
+  {id:38,name:"Газоза",price:70},
+  {id:39,name:"7уп",price:70},
+  {id:40,name:"Џус",price:80},
+  {id:41,name:"Леден чај",price:90},
+  {id:42,name:"Вода Негазирана 0.25",price:40},
+  {id:43,name:"Вода Негазирана 0.75",price:80},
+  {id:44,name:"Вода Газирана 0.25",price:40},
+  {id:45,name:"Вода Газирана 0.75",price:80},
+  {id:46,name:"Кафе",price:40},
+  {id:47,name:"Еспресо",price:50},
+  {id:48,name:"Нескафе",price:40},
+  {id:49,name:"Чај",price:30}
+ ],
+ "Салати":[
+  {id:50,name:"Шопска",price:200},
+  {id:51,name:"Грчка",price:200},
+  {id:52,name:"Мешана",price:180},
+  {id:53,name:"Зелка",price:50},
+  {id:54,name:"Марула",price:60},
+  {id:55,name:"Таратор",price:100},
+  {id:56,name:"Маслинки",price:60},
+  {id:57,name:"Сирење",price:120}
+ ],
+ "Скара":[
+  {id:58,name:"Кебап",price:25},
+  {id:59,name:"Ајдучки кебап",price:30},
+  {id:60,name:"Плескавица",price:100},
+  {id:61,name:"Шарска",price:220},
+  {id:62,name:"Ребро",price:240},
+  {id:63,name:"Стек",price:170},
+  {id:64,name:"Батак",price:170},
+  {id:65,name:"Крилца",price:240},
+  {id:66,name:"Колбас",price:100},
+  {id:67,name:"Пафлак",price:220},
+  {id:68,name:"Суво месо",price:120},
+  {id:69,name:"Свински увијач",price:190},
+  {id:70,name:"Шницла",price:220},
+  {id:71,name:"Питии",price:200}
+ ],
+ "Гарнир":[
+  {id:72,name:"Помфрит",price:130},
+  {id:73,name:"Помфрит со сирење",price:170},
+  {id:74,name:"Леб",price:20},
+  {id:75,name:"Пиперка",price:20},
+  {id:76,name:"Нафора",price:80}
+ ],
+ "Бургери":[
+  {id:77,name:"Хамбургер",price:150},
+  {id:78,name:"Чикен бургер",price:170}
+ ],
+ "Појадок":[
+  {id:79,name:"Омлет",price:140},
+  {id:80,name:"Јајца на око",price:100}
+ ]
 };
 
-/* ===== CURRENT MASA ===== */
-let current = 0;
+// ===== ИНИЦИЈАЛИЗАЦИЈА НА МАСИ И ПРОМЕТ =====
+let masi=[], current=0;
 
-/* ===== RENDER MASI ===== */
-function renderMasi(){
-  db.ref("masi").get().then(snap=>{
-    let data = snap.val();
-    if(!data){
-      data = Array.from({length:8},(_,i)=>({broj:i+1,naracki:[]}));
-      db.ref("masi").set(data);
-    }
-    const d=document.getElementById("masi");
-    d.innerHTML = "";
-    data.forEach((m,i)=>{
-      let div = document.createElement("div");
-      div.className = "masa" + (m.naracki.length ? " zafatena" : "");
-      div.innerText = "Маса " + m.broj;
-      div.onclick = () => openMasa(i);
-      d.appendChild(div);
-    });
-  }).catch(err=>console.error("Грешка при маси:", err));
-}
+// Real-time listener за масите
+db.ref("masi").on("value", snapshot=>{
+  if(snapshot.exists()) masi = snapshot.val();
+  else {
+    masi = Array.from({length:8},(_,i)=>({broj:i+1,naracki:[]}));
+    db.ref("masi").set(masi);
+  }
+  renderMasi();
+});
 
-/* ===== RENDER PROMET ===== */
+// Промет
 function renderPromet(){
-  db.ref("promet").get().then(snap=>{
-    document.getElementById("promet").innerText = snap.val() || 0;
+  db.ref("promet/"+todayKey()).get().then(s=>{
+    document.getElementById("promet").innerText = s.exists()? s.val():0;
   });
 }
+renderPromet();
 
-/* ===== AUTO REFRESH ===== */
-setInterval(()=>{
-  renderMasi();
-  renderPromet();
-},1000);
+function todayKey(){ return new Date().toISOString().slice(0,10); }
 
-/* ===== OPEN/CLOSE SCREENS ===== */
+// ===== РЕНДЕР МАСИ =====
+function renderMasi(){
+ const d=document.getElementById("masi"); d.innerHTML="";
+ masi.forEach((m,i)=>{
+  let div=document.createElement("div");
+  div.className="masa"+(m.naracki.length?" zafatena":"");
+  div.innerText="Маса "+m.broj;
+  div.onclick=()=>openMasa(i);
+  d.appendChild(div);
+ });
+}
+
 function openMasa(i){
-  current=i;
-  document.getElementById("screenMasi").style.display="none";
-  document.getElementById("screenMasa").style.display="block";
-  document.getElementById("masaTitle").innerText="Маса "+(i+1);
-  renderMasa();
+ current=i;
+ screenMasi.style.display="none";
+ screenMasa.style.display="block";
+ masaTitle.innerText="Маса "+masi[i].broj;
+ renderMasa();
 }
-function backToMasi(){
-  document.getElementById("screenMasa").style.display="none";
-  document.getElementById("screenMasi").style.display="block";
-}
-function openMenu(){
-  document.getElementById("screenMasa").style.display="none";
-  document.getElementById("screenMenu").style.display="block";
-  renderMenu();
-}
-function backToMasa(){
-  document.getElementById("screenMenu").style.display="none";
-  document.getElementById("screenMasa").style.display="block";
-  renderMasa();
-}
+function backToMasi(){ saveMasi(); screenMasa.style.display="none"; screenMasi.style.display="block"; renderMasi(); }
+function openMenu(){ screenMasa.style.display="none"; screenMenu.style.display="block"; renderMenu(); }
+function backToMasa(){ screenMenu.style.display="none"; screenMasa.style.display="block"; renderMasa(); }
 
-/* ===== DROPDOWN MENU ===== */
+// ===== МЕНИ =====
 function renderMenu(){
- const m=document.getElementById("menu");
- m.innerHTML="";
+ const m=document.getElementById("menu"); m.innerHTML="";
  Object.keys(menu).forEach(cat=>{
    m.innerHTML+=`<div class="dropdown" onclick="toggleCategory(this)">${cat} <span>▼</span></div><div class="dropdown-items"></div>`;
  });
@@ -164,114 +301,89 @@ function renderMenu(){
    });
  });
 }
-function toggleCategory(el){
-  document.querySelectorAll(".dropdown").forEach(d=>{ if(d!==el) d.classList.remove("open"); });
-  el.classList.toggle("open");
-}
 
-/* ===== MASA ITEMS ===== */
+function toggleCategory(el){ document.querySelectorAll(".dropdown").forEach(d=>{ if(d!==el)d.classList.remove("open"); }); el.classList.toggle("open"); }
+
 function addItem(id){
- db.ref("masi").get().then(snap=>{
-   let masi = snap.val();
-   let masa = masi[current];
-   let item;
-   for(let cat in menu){ item = menu[cat].find(x=>x.id===id); if(item) break; }
-   let n = masa.naracki.find(x=>x.id===id);
-   if(n) n.qty++;
-   else masa.naracki.push({...item,qty:1});
-   masi[current] = masa;
-   db.ref("masi").set(masi).then(()=>renderMasa());
- });
+ let masa=masi[current], item;
+ for(let cat in menu){ item=menu[cat].find(x=>x.id===id); if(item) break; }
+ let n=masa.naracki.find(x=>x.id===id);
+ if(n) n.qty++; else masa.naracki.push({...item,qty:1});
+ saveMasi(); renderMasa();
 }
 
 function renderMasa(){
- db.ref("masi").get().then(snap=>{
-   let masa = snap.val()[current];
-   const d=document.getElementById("items");
-   d.innerHTML="";
-   let total=0;
-   masa.naracki.forEach((n,i)=>{
-     total+=n.qty*n.price;
-     d.innerHTML+=`<div class="item">${n.name} <button onclick="changeQty(${i},-1)">−</button> ${n.qty} <button onclick="changeQty(${i},1)">+</button> ${n.qty*n.price} ден</div>`;
-   });
-   document.getElementById("total").innerText=total;
+ const d=document.getElementById("items"); d.innerHTML="";
+ let total=0;
+ masi[current].naracki.forEach((n,i)=>{
+   total+=n.qty*n.price;
+   d.innerHTML+=`<div class="item">${n.name}<button onclick="changeQty(${i},-1)">−</button>${n.qty}<button onclick="changeQty(${i},1)">+</button>${n.qty*n.price} ден</div>`;
  });
+ document.getElementById("total").innerText=total;
 }
 
-function changeQty(i,d){
- db.ref("masi").get().then(snap=>{
-   let masi = snap.val();
-   let n = masi[current].naracki[i];
-   n.qty += d;
-   if(n.qty<=0) masi[current].naracki.splice(i,1);
-   db.ref("masi").set(masi).then(()=>renderMasa());
- });
+function changeQty(i,d){ 
+ let n=masi[current].naracki[i]; 
+ n.qty+=d; 
+ if(n.qty<=0) masi[current].naracki.splice(i,1); 
+ renderMasa(); 
+ saveMasi(); 
 }
 
-/* ===== PLATI ===== */
+// ===== ПЛАТИ =====
 function clearMasa(){
  if(confirm("Да се наплати масата?")){
-   db.ref("masi").get().then(snap=>{
-     let masi = snap.val();
-     let total=0;
-     masi[current].naracki.forEach(n=>total+=n.qty*n.price);
-     saveReport(masi[current].naracki);
-     db.ref("promet").get().then(psnap=>{
-       db.ref("promet").set((psnap.val()||0)+total);
-     });
-     masi[current].naracki=[];
-     db.ref("masi").set(masi).then(()=>backToMasi());
-   });
+  let s=0;
+  masi[current].naracki.forEach(n=>s+=n.qty*n.price);
+  saveReport(masi[current].naracki);
+  addPromet(s);
+  masi[current].naracki=[];
+  saveMasi(); backToMasi();
  }
 }
 
-/* ===== REPORT ===== */
-function reportKey(date){ return "report-"+date; }
+function saveMasi(){ db.ref("masi").set(masi); }
+
+function addPromet(x){
+ const ref=db.ref("promet/"+todayKey());
+ ref.get().then(s=>{ ref.set((s.exists()?s.val():0)+x).then(renderPromet); });
+}
+
+// ===== ИЗВЕШТАЈ =====
 function saveReport(items){
- const date = new Date().toISOString().slice(0,10);
- db.ref(reportKey(date)).get().then(snap=>{
-   let data = snap.val() || {};
+ const date = todayKey();
+ const ref = db.ref("report-"+date);
+ ref.get().then(s=>{
+   let data = s.exists()? s.val():{};
    items.forEach(n=>{
-     let category="";
-     for(let cat in menu){ if(menu[cat].some(i=>i.id===n.id)){category=cat; break;} }
+     let category=""; for(let cat in menu){ if(menu[cat].some(i=>i.id===n.id)){category=cat; break;} }
      if(!data[category]) data[category]={};
      if(!data[category][n.name]) data[category][n.name]={qty:0,sum:0};
      data[category][n.name].qty += n.qty;
      data[category][n.name].sum += n.qty*n.price;
    });
-   db.ref(reportKey(date)).set(data);
+   ref.set(data);
  });
 }
-function openReport(){
- document.getElementById("screenMasi").style.display="none";
- document.getElementById("screenReport").style.display="block";
- document.getElementById("reportDate").value = new Date().toISOString().slice(0,10);
- renderReport();
-}
-function backFromReport(){
- document.getElementById("screenReport").style.display="none";
- document.getElementById("screenMasi").style.display="block";
-}
+
+function openReport(){ screenMasi.style.display="none"; screenReport.style.display="block"; document.getElementById("reportDate").value = todayKey(); renderReport(); }
+function backFromReport(){ screenReport.style.display="none"; screenMasi.style.display="block"; }
+
 function renderReport(){
- const date = document.getElementById("reportDate").value;
- db.ref(reportKey(date)).get().then(snap=>{
-   const data = snap.val();
-   const c = document.getElementById("reportContent");
-   c.innerHTML = "";
-   if(!data){ c.innerHTML="<p>Нема податоци за овој ден</p>"; return; }
+ const date=document.getElementById("reportDate").value;
+ const c=document.getElementById("reportContent"); c.innerHTML="";
+ db.ref("report-"+date).get().then(snapshot=>{
+   if(!snapshot.exists()){ c.innerHTML="<p>Нема податоци за овој ден</p>"; return; }
+   const data=snapshot.val();
    for(let cat in data){
      c.innerHTML+=`<h3>${cat}</h3>`;
      for(let item in data[cat]){
-       const x = data[cat][item];
+       const x=data[cat][item];
        c.innerHTML+=`<div class="item">${item} – ${x.qty} × = ${x.sum} ден</div>`;
      }
    }
  });
 }
-
-/* ===== INITIAL CALLS ===== */
-renderMasi();
-renderPromet();
 </script>
 </body>
 </html>
