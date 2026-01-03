@@ -18,7 +18,7 @@ button.red{background:#d32f2f;}
 .dropdown-items{display:none;margin-top:10px;}
 .dropdown.open + .dropdown-items{display:block;}
 .menu-item{display:inline-block;margin:6px;}
-input{width:80px;margin:2px;}
+input,select{margin:2px;}
 </style>
 </head>
 <body>
@@ -65,10 +65,16 @@ input{width:80px;margin:2px;}
 </div>
 
 <script>
-// ===== МЕНИ со unitType (piece = парче, gram = грам/килограм) =====
+// ===== МЕНИ со unitType =====
 const menu = {
- "Пиво":[{id:1,name:"Скопско",price:90,unitType:"piece"},{id:2,name:"Хајнекен",price:110,unitType:"piece"}],
- "Скара":[{id:3,name:"Ребро",price:240,unitType:"gram"},{id:4,name:"Крилца",price:220,unitType:"gram"}]
+ "Пиво":[
+   {id:1,name:"Скопско",price:90,unitType:"piece"},
+   {id:2,name:"Хајнекен",price:110,unitType:"piece"}
+ ],
+ "Скара":[
+   {id:3,name:"Ребро",price:240,unitType:"gram"},
+   {id:4,name:"Крилца",price:220,unitType:"gram"}
+ ]
 };
 
 // ===== ПОПИС =====
@@ -76,10 +82,8 @@ let popis = JSON.parse(localStorage.getItem("popis")) || {};
 for(let cat in menu){
  menu[cat].forEach(it=>{
   if(!popis[it.id]) popis[it.id]={
-   qty:0, // залиха
-   priceBuy:0, // цена по ед/грам
-   priceSell:it.price,
-   unitType: it.unitType
+   unitType: it.unitType,
+   qtyBuy:0, priceBuy:0, qtySell:0, priceSell: it.price
   };
  });
 }
@@ -159,9 +163,7 @@ function clearMasa(){
    s+=n.qty*n.price;
    let p=popis[n.id];
    let removeQty = n.qty;
-   if(p.unitType=="gram") removeQty = n.qty; // qty е во грамови за продажба
-   if(p.unitType=="piece") removeQty = n.qty;
-   p.qty -= removeQty; // одзема од залихата
+   p.qtyBuy -= removeQty; // автоматско одземање
    totalCost += removeQty * (p.priceBuy||0);
   });
   addPromet(s);
@@ -181,14 +183,27 @@ function renderPopis(){
   d.innerHTML+=`<h3>${cat}</h3>`;
   menu[cat].forEach(it=>{
    let p=popis[it.id];
-   d.innerHTML+=`<div class="item">${it.name}<br>
-   Залиха: <input type="number" value="${p.qty}" onchange="popis[${it.id}].qty=Number(this.value);savePopis()">
-   Цена купување: <input type="number" value="${p.priceBuy}" onchange="popis[${it.id}].priceBuy=Number(this.value);savePopis()">
-   Цена продажба: <input type="number" value="${p.priceSell}" onchange="popis[${it.id}].priceSell=Number(this.value);savePopis()">
-   Единица: ${p.unitType}</div>`;
+   d.innerHTML+=`<div class="item">
+     ${it.name}<br>
+     Единица: 
+     <select onchange="updatePopisUnit(${it.id},this.value)">
+       <option value="gram" ${p.unitType==='gram'?'selected':''}>gram</option>
+       <option value="piece" ${p.unitType==='piece'?'selected':''}>piece</option>
+     </select><br>
+     Колку купувам: <input type="number" value="${p.qtyBuy||0}" onchange="updatePopisQtyBuy(${it.id},this.value)"><br>
+     Цена купување: <input type="number" value="${p.priceBuy||0}" onchange="updatePopisBuy(${it.id},this.value)"><br>
+     Колку продавам: <input type="number" value="${p.qtySell||0}" onchange="updatePopisQtySell(${it.id},this.value)"><br>
+     Цена продажба: <input type="number" value="${p.priceSell||it.price}" onchange="updatePopisSell(${it.id},this.value)">
+   </div>`;
   });
  }
 }
+
+function updatePopisUnit(id,value){ popis[id].unitType=value; savePopis();}
+function updatePopisQtyBuy(id,value){ popis[id].qtyBuy=Number(value); savePopis();}
+function updatePopisBuy(id,value){ popis[id].priceBuy=Number(value); savePopis();}
+function updatePopisQtySell(id,value){ popis[id].qtySell=Number(value); savePopis();}
+function updatePopisSell(id,value){ popis[id].priceSell=Number(value); savePopis();}
 function savePopis(){localStorage.setItem("popis",JSON.stringify(popis));}
 
 // ===== ИЗВЕШТАЈ =====
