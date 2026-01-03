@@ -154,24 +154,25 @@ function changeQty(i,d){
  renderMasa(); save();
 }
 
-// ===== ПЛАЌАЊЕ со правилен трошок =====
+// ===== ПЛАЌАЊЕ со автоматско одземање на залиха =====
 function clearMasa(){
  if(confirm("Да се наплати масата?")){
   let s=0;
   let totalCost=0;
   masi[current].naracki.forEach(n=>{
-   s += n.qty * n.price; // приход
+   s += n.qty * n.price;
    let p = popis[n.id];
    let soldQty;
    if(p.unitType==="gram"){
-     soldQty = n.qty * (p.qtySell || n.qty); // колку грам се продава
-     let costPerGram = (p.priceBuy||0) / (p.qtyBuy||1); 
+     soldQty = n.qty * (p.qtySell || n.qty); 
+     let costPerGram = (p.priceBuy||0)/(p.qtyBuy||1); 
      totalCost += soldQty * costPerGram;
+     p.qtyBuy -= soldQty;
    } else {
      soldQty = n.qty;
      totalCost += soldQty * (p.priceBuy||0);
+     p.qtyBuy -= soldQty;
    }
-   p.qtyBuy -= soldQty; // одзема од залихата
   });
   addPromet(s);
   saveReport(masi[current].naracki,totalCost);
@@ -207,7 +208,6 @@ function renderPopis(){
   });
  }
 }
-
 function updatePopisUnit(id,value){ popis[id].unitType=value; savePopis();}
 function updatePopisQtyBuy(id,value){ popis[id].qtyBuy=Number(value); savePopis();}
 function updatePopisBuy(id,value){ popis[id].priceBuy=Number(value); savePopis();}
