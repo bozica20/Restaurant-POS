@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kafana POS</title>
+<title>Kafana POS - Paket/Porcii</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f2f2f2;margin:0;padding:12px;}
 h2,h3{margin:6px 0;}
@@ -65,7 +65,7 @@ input,select{margin:2px;}
 </div>
 
 <script>
-// ===== МЕНИ со unitType =====
+// ===== МЕНИ =====
 const menu = {
  "Пиво":[
    {id:1,name:"Скопско",price:90,unitType:"piece"},
@@ -158,24 +158,20 @@ function changeQty(i,d){
 function clearMasa(){
  if(confirm("Да се наплати масата?")){
   let s=0;
-  let totalCost=0;
   masi[current].naracki.forEach(n=>{
    s += n.qty * n.price;
    let p = popis[n.id];
-   let soldQty;
+   let soldQty = n.qty;
    if(p.unitType==="gram"){
-     soldQty = n.qty * (p.qtySell || n.qty); 
-     let costPerGram = (p.priceBuy||0)/(p.qtyBuy||1); 
-     totalCost += soldQty * costPerGram;
+     soldQty = n.qty*(p.qtySell||n.qty);
+     let costPerGram = (p.priceBuy||0)/(p.qtyBuy||1);
      p.qtyBuy -= soldQty;
    } else {
-     soldQty = n.qty;
-     totalCost += soldQty * (p.priceBuy||0);
      p.qtyBuy -= soldQty;
    }
   });
   addPromet(s);
-  saveReport(masi[current].naracki,totalCost);
+  saveReport(masi[current].naracki);
   savePopis();
   masi[current].naracki=[];
   save(); backToMasi();
@@ -217,7 +213,7 @@ function savePopis(){localStorage.setItem("popis",JSON.stringify(popis));}
 
 // ===== ИЗВЕШТАЈ =====
 function reportKey(date){return "report-"+date;}
-function saveReport(items,totalCost){
+function saveReport(items){
  const date=new Date().toISOString().slice(0,10);
  let data=JSON.parse(localStorage.getItem(reportKey(date)))||{};
  items.forEach(n=>{
@@ -227,7 +223,7 @@ function saveReport(items,totalCost){
   let p=popis[n.id];
   let soldQty;
   if(p.unitType==="gram"){
-    soldQty = n.qty * (p.qtySell || n.qty);
+    soldQty = n.qty*(p.qtySell||n.qty);
     let costPerGram = (p.priceBuy||0)/(p.qtyBuy||1);
     data[category][n.name].cost += soldQty * costPerGram;
   } else {
