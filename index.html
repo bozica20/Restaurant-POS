@@ -154,17 +154,24 @@ function changeQty(i,d){
  renderMasa(); save();
 }
 
-// ===== ПЛАЌАЊЕ со одземање од залиха =====
+// ===== ПЛАЌАЊЕ со правилен трошок =====
 function clearMasa(){
  if(confirm("Да се наплати масата?")){
   let s=0;
   let totalCost=0;
   masi[current].naracki.forEach(n=>{
-   s+=n.qty*n.price;
-   let p=popis[n.id];
-   let removeQty = n.qty;
-   p.qtyBuy -= removeQty; // автоматско одземање
-   totalCost += removeQty * (p.priceBuy||0);
+   s += n.qty * n.price; // приход
+   let p = popis[n.id];
+   let soldQty;
+   if(p.unitType==="gram"){
+     soldQty = n.qty * (p.qtySell || n.qty); // колку грам се продава
+     let costPerGram = (p.priceBuy||0) / (p.qtyBuy||1); 
+     totalCost += soldQty * costPerGram;
+   } else {
+     soldQty = n.qty;
+     totalCost += soldQty * (p.priceBuy||0);
+   }
+   p.qtyBuy -= soldQty; // одзема од залихата
   });
   addPromet(s);
   saveReport(masi[current].naracki,totalCost);
@@ -183,6 +190,7 @@ function renderPopis(){
   d.innerHTML+=`<h3>${cat}</h3>`;
   menu[cat].forEach(it=>{
    let p=popis[it.id];
+   let currentStock = p.qtyBuy;
    d.innerHTML+=`<div class="item">
      ${it.name}<br>
      Единица: 
@@ -193,7 +201,8 @@ function renderPopis(){
      Колку купувам: <input type="number" value="${p.qtyBuy||0}" onchange="updatePopisQtyBuy(${it.id},this.value)"><br>
      Цена купување: <input type="number" value="${p.priceBuy||0}" onchange="updatePopisBuy(${it.id},this.value)"><br>
      Колку продавам: <input type="number" value="${p.qtySell||0}" onchange="updatePopisQtySell(${it.id},this.value)"><br>
-     Цена продажба: <input type="number" value="${p.priceSell||it.price}" onchange="updatePopisSell(${it.id},this.value)">
+     Цена продажба: <input type="number" value="${p.priceSell||it.price}" onchange="updatePopisSell(${it.id},this.value)"><br>
+     <b>Тековна залиха: ${currentStock}</b>
    </div>`;
   });
  }
@@ -216,10 +225,17 @@ function saveReport(items,totalCost){
   if(!data[category]) data[category]={};
   if(!data[category][n.name]) data[category][n.name]={qty:0,sum:0,cost:0};
   let p=popis[n.id];
-  let soldQty=n.qty;
-  data[category][n.name].qty+=soldQty;
-  data[category][n.name].sum+=soldQty*n.price;
-  data[category][n.name].cost+=soldQty*(p.priceBuy||0);
+  let soldQty;
+  if(p.unitType==="gram"){
+    soldQty = n.qty * (p.qtySell || n.qty);
+    let costPerGram = (p.priceBuy||0)/(p.qtyBuy||1);
+    data[category][n.name].cost += soldQty * costPerGram;
+  } else {
+    soldQty = n.qty;
+    data[category][n.name].cost += soldQty*(p.priceBuy||0);
+  }
+  data[category][n.name].qty += soldQty;
+  data[category][n.name].sum += n.qty * n.price;
  });
  localStorage.setItem(reportKey(date),JSON.stringify(data));
 }
