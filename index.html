@@ -90,64 +90,66 @@ const menu = {
  "Појадок":[{id:79,name:"Омлет",price:140},{id:80,name:"Јајца на око",price:100}]
 };
 
-/* ===== МАСИ ===== */
-let current=0;
+/* ===== CURRENT MASA ===== */
+let current = 0;
 
-function renderPromet(){
- db.ref("promet").get().then(snap=>{
-   document.getElementById("promet").innerText = snap.val() || 0;
- });
-}
-
-renderPromet();
-
+/* ===== RENDER MASI ===== */
 function renderMasi(){
- db.ref("masi").get().then(snap=>{
-   let data = snap.val();
-   if(!data){
-     data = Array.from({length:8},(_,i)=>({broj:i+1,naracki:[]}));
-     db.ref("masi").set(data);
-   }
-   const d=document.getElementById("masi"); d.innerHTML="";
-   data.forEach((m,i)=>{
-     let div=document.createElement("div");
-     div.className="masa"+(m.naracki.length?" zafatena":"");
-     div.innerText="Маса "+m.broj;
-     div.onclick=()=>openMasa(i);
-     d.appendChild(div);
-   });
- });
+  db.ref("masi").get().then(snap=>{
+    let data = snap.val();
+    if(!data){
+      data = Array.from({length:8},(_,i)=>({broj:i+1,naracki:[]}));
+      db.ref("masi").set(data);
+    }
+    const d=document.getElementById("masi");
+    d.innerHTML = "";
+    data.forEach((m,i)=>{
+      let div = document.createElement("div");
+      div.className = "masa" + (m.naracki.length ? " zafatena" : "");
+      div.innerText = "Маса " + m.broj;
+      div.onclick = () => openMasa(i);
+      d.appendChild(div);
+    });
+  }).catch(err=>console.error("Грешка при маси:", err));
 }
 
-renderMasi();
+/* ===== RENDER PROMET ===== */
+function renderPromet(){
+  db.ref("promet").get().then(snap=>{
+    document.getElementById("promet").innerText = snap.val() || 0;
+  });
+}
 
+/* ===== AUTO REFRESH ===== */
+setInterval(()=>{
+  renderMasi();
+  renderPromet();
+},1000);
+
+/* ===== OPEN/CLOSE SCREENS ===== */
 function openMasa(i){
- current=i;
- document.getElementById("screenMasi").style.display="none";
- document.getElementById("screenMasa").style.display="block";
- document.getElementById("masaTitle").innerText="Маса "+(i+1);
- renderMasa();
+  current=i;
+  document.getElementById("screenMasi").style.display="none";
+  document.getElementById("screenMasa").style.display="block";
+  document.getElementById("masaTitle").innerText="Маса "+(i+1);
+  renderMasa();
 }
-
 function backToMasi(){
- document.getElementById("screenMasa").style.display="none";
- document.getElementById("screenMasi").style.display="block";
- renderMasi();
+  document.getElementById("screenMasa").style.display="none";
+  document.getElementById("screenMasi").style.display="block";
 }
-
 function openMenu(){
- document.getElementById("screenMasa").style.display="none";
- document.getElementById("screenMenu").style.display="block";
- renderMenu();
+  document.getElementById("screenMasa").style.display="none";
+  document.getElementById("screenMenu").style.display="block";
+  renderMenu();
 }
-
 function backToMasa(){
- document.getElementById("screenMenu").style.display="none";
- document.getElementById("screenMasa").style.display="block";
- renderMasa();
+  document.getElementById("screenMenu").style.display="none";
+  document.getElementById("screenMasa").style.display="block";
+  renderMasa();
 }
 
-/* ===== DROPDOWN МЕНИ ===== */
+/* ===== DROPDOWN MENU ===== */
 function renderMenu(){
  const m=document.getElementById("menu");
  m.innerHTML="";
@@ -162,35 +164,34 @@ function renderMenu(){
    });
  });
 }
-
 function toggleCategory(el){
- document.querySelectorAll(".dropdown").forEach(d=>{ if(d!==el) d.classList.remove("open"); });
- el.classList.toggle("open");
+  document.querySelectorAll(".dropdown").forEach(d=>{ if(d!==el) d.classList.remove("open"); });
+  el.classList.toggle("open");
 }
 
-/* ===== ДОДАВАЊЕ НА МЕНУ ===== */
+/* ===== MASA ITEMS ===== */
 function addItem(id){
  db.ref("masi").get().then(snap=>{
    let masi = snap.val();
    let masa = masi[current];
    let item;
    for(let cat in menu){ item = menu[cat].find(x=>x.id===id); if(item) break; }
-   let n=masa.naracki.find(x=>x.id===id);
+   let n = masa.naracki.find(x=>x.id===id);
    if(n) n.qty++;
    else masa.naracki.push({...item,qty:1});
-   masi[current]=masa;
+   masi[current] = masa;
    db.ref("masi").set(masi).then(()=>renderMasa());
  });
 }
 
-/* ===== РЕНДЕР МАСА ===== */
 function renderMasa(){
  db.ref("masi").get().then(snap=>{
    let masa = snap.val()[current];
-   const d=document.getElementById("items"); d.innerHTML="";
+   const d=document.getElementById("items");
+   d.innerHTML="";
    let total=0;
    masa.naracki.forEach((n,i)=>{
-     total += n.qty*n.price;
+     total+=n.qty*n.price;
      d.innerHTML+=`<div class="item">${n.name} <button onclick="changeQty(${i},-1)">−</button> ${n.qty} <button onclick="changeQty(${i},1)">+</button> ${n.qty*n.price} ден</div>`;
    });
    document.getElementById("total").innerText=total;
@@ -200,14 +201,14 @@ function renderMasa(){
 function changeQty(i,d){
  db.ref("masi").get().then(snap=>{
    let masi = snap.val();
-   let n=masi[current].naracki[i];
+   let n = masi[current].naracki[i];
    n.qty += d;
    if(n.qty<=0) masi[current].naracki.splice(i,1);
    db.ref("masi").set(masi).then(()=>renderMasa());
  });
 }
 
-/* ===== ПЛАТИ ===== */
+/* ===== PLATI ===== */
 function clearMasa(){
  if(confirm("Да се наплати масата?")){
    db.ref("masi").get().then(snap=>{
@@ -216,7 +217,7 @@ function clearMasa(){
      masi[current].naracki.forEach(n=>total+=n.qty*n.price);
      saveReport(masi[current].naracki);
      db.ref("promet").get().then(psnap=>{
-       db.ref("promet").set((psnap.val()||0)+total).then(()=>renderPromet());
+       db.ref("promet").set((psnap.val()||0)+total);
      });
      masi[current].naracki=[];
      db.ref("masi").set(masi).then(()=>backToMasi());
@@ -224,9 +225,8 @@ function clearMasa(){
  }
 }
 
-/* ===== ИЗВЕШТАЈ ===== */
+/* ===== REPORT ===== */
 function reportKey(date){ return "report-"+date; }
-
 function saveReport(items){
  const date = new Date().toISOString().slice(0,10);
  db.ref(reportKey(date)).get().then(snap=>{
@@ -242,19 +242,16 @@ function saveReport(items){
    db.ref(reportKey(date)).set(data);
  });
 }
-
 function openReport(){
  document.getElementById("screenMasi").style.display="none";
  document.getElementById("screenReport").style.display="block";
  document.getElementById("reportDate").value = new Date().toISOString().slice(0,10);
  renderReport();
 }
-
 function backFromReport(){
  document.getElementById("screenReport").style.display="none";
  document.getElementById("screenMasi").style.display="block";
 }
-
 function renderReport(){
  const date = document.getElementById("reportDate").value;
  db.ref(reportKey(date)).get().then(snap=>{
@@ -271,6 +268,10 @@ function renderReport(){
    }
  });
 }
+
+/* ===== INITIAL CALLS ===== */
+renderMasi();
+renderPromet();
 </script>
 </body>
 </html>
