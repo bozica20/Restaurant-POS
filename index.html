@@ -3,108 +3,158 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kafana POS - Paket/Porcii</title>
+<title>Kafana POS</title>
+
 <style>
-body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f2f2f2;margin:0;padding:12px;}
-h2,h3{margin:6px 0;}
-.masa{display:inline-flex;justify-content:center;align-items:center;width:120px;height:90px;margin:8px;background:white;border-radius:18px;font-weight:bold;font-size:20px;box-shadow:0 4px 10px rgba(0,0,0,0.25);cursor:pointer;}
-.zafatena{background:#ffcc80;}
-button{border:none;border-radius:18px;padding:14px 20px;margin:6px;background:#1976d2;color:white;font-size:20px;cursor:pointer;}
-button.green{background:#388e3c;}
-button.red{background:#d32f2f;}
-.item{background:white;padding:14px;margin:8px 0;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,0.15);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;font-size:18px;}
-.total{font-size:22px;font-weight:bold;margin-top:12px;text-align:right;}
-.dropdown{background:#e0e0e0;border-radius:16px;margin-top:12px;padding:16px;font-size:22px;font-weight:bold;display:flex;justify-content:space-between;cursor:pointer;}
-.dropdown-items{display:none;margin-top:10px;}
-.dropdown.open + .dropdown-items{display:block;}
-.menu-item{display:inline-block;margin:6px;}
-input,select{margin:2px;}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f2f2f2;margin:0;padding:12px}
+h2,h3{margin:6px 0}
+button{border:none;border-radius:18px;padding:14px 20px;margin:6px;background:#1976d2;color:white;font-size:18px;cursor:pointer}
+button.green{background:#388e3c}
+button.red{background:#d32f2f}
+.masa{display:inline-flex;justify-content:center;align-items:center;width:120px;height:90px;margin:8px;background:white;border-radius:18px;font-weight:bold;font-size:20px;box-shadow:0 4px 10px rgba(0,0,0,.25);cursor:pointer}
+.zafatena{background:#ffcc80}
+.item{background:white;padding:12px;margin:6px 0;border-radius:14px;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+input,select{padding:6px;border-radius:8px;border:1px solid #ccc;width:100%;margin:4px 0}
+.total{font-size:20px;font-weight:bold;text-align:right}
+.dropdown{background:#e0e0e0;border-radius:14px;padding:12px;margin-top:8px;cursor:pointer;font-weight:bold}
+.dropdown-items{display:none}
+.dropdown.open + .dropdown-items{display:block}
 </style>
 </head>
+
 <body>
 
 <!-- МАСИ -->
 <div id="screenMasi">
- <h2>Маси</h2>
- <h3>Дневен промет: <span id="promet">0</span> ден</h3>
- <button onclick="openReport()">📊 Извештај</button>
- <button onclick="openPopis()">📋 Попис</button>
- <div id="masi"></div>
+<h2>Маси</h2>
+<h3>Дневен промет: <span id="promet">0</span> ден</h3>
+<button onclick="openReport()">📊 Извештај</button>
+<button onclick="openPopis()">📦 Попис</button>
+<div id="masi"></div>
 </div>
 
 <!-- МАСА -->
 <div id="screenMasa" style="display:none">
- <button onclick="backToMasi()">⬅ Маси</button>
- <h3 id="masaTitle"></h3>
- <div id="items"></div>
- <div class="total">Вкупно: <span id="total">0</span> ден</div>
- <button class="green" onclick="openMenu()">➕ Додај</button>
- <button class="red" onclick="clearMasa()">💰 Плати</button>
+<button onclick="backToMasi()">⬅ Маси</button>
+<h3 id="masaTitle"></h3>
+<div id="items"></div>
+<div class="total">Вкупно: <span id="total">0</span> ден</div>
+<button class="green" onclick="openMenu()">➕ Додај</button>
+<button class="red" onclick="clearMasa()">💰 Плати</button>
 </div>
 
 <!-- МЕНИ -->
 <div id="screenMenu" style="display:none">
- <button onclick="backToMasa()">⬅ Назад</button>
- <h3>Мени</h3>
- <div id="menu"></div>
+<button onclick="backToMasa()">⬅ Назад</button>
+<h3>Мени</h3>
+<div id="menu"></div>
+</div>
+
+<!-- POPIS -->
+<div id="screenPopis" style="display:none">
+<button onclick="backFromPopis()">⬅ Назад</button>
+<h3>Попис</h3>
+<div id="popisList"></div>
 </div>
 
 <!-- ИЗВЕШТАЈ -->
 <div id="screenReport" style="display:none">
- <button onclick="backFromReport()">⬅ Назад</button>
- <h3>Дневен извештај</h3>
- <input type="date" id="reportDate" onchange="renderReport()">
- <div id="reportContent"></div>
-</div>
-
-<!-- ПОПИС -->
-<div id="screenPopis" style="display:none">
- <button onclick="backFromPopis()">⬅ Назад</button>
- <h3>Попис</h3>
- <div id="popisList"></div>
+<button onclick="backFromReport()">⬅ Назад</button>
+<h3>Дневен извештај</h3>
+<div id="reportContent"></div>
 </div>
 
 <script>
-// ===== МЕНИ =====
+// ================= MENU (НЕПРОМЕНЕТО) =================
 const menu = {
  "Пиво":[
-   {id:1,name:"Скопско",price:90,unitType:"piece"},
-   {id:2,name:"Хајнекен",price:110,unitType:"piece"}
+  {id:1,name:"Скопско",price:90},
+  {id:2,name:"Скопско Smooth",price:90},
+  {id:3,name:"Хајнекен",price:110}
  ],
  "Скара":[
-   {id:3,name:"Ребро",price:240,unitType:"gram"},
-   {id:4,name:"Крилца",price:220,unitType:"gram"}
+  {id:57,name:"Крилца",price:220},
+  {id:61,name:"Ребро",price:250}
  ]
 };
 
-// ===== ПОПИС =====
+// ================= POPIS =================
 let popis = JSON.parse(localStorage.getItem("popis")) || {};
-for(let cat in menu){
- menu[cat].forEach(it=>{
-  if(!popis[it.id]) popis[it.id]={
-   unitType: it.unitType,
-   qtyBuy:0, priceBuy:0, qtySell:0, priceSell: it.price
-  };
- });
-}
-localStorage.setItem("popis",JSON.stringify(popis));
 
-// ===== МАСИ =====
-let masi = JSON.parse(localStorage.getItem("masi")) || Array.from({length:8},(_,i)=>({broj:i+1,naracki:[]})); 
+function initPopis(){
+ for(let cat in menu){
+  menu[cat].forEach(i=>{
+   if(!popis[i.id]){
+    popis[i.id]={
+     name:i.name,
+     unit:"gram",
+     stock:0,
+     packSize:0,
+     buyPrice:0,
+     sellQty:0,
+     sellPrice:i.price
+    };
+   }
+  });
+ }
+ savePopis();
+}
+
+function savePopis(){localStorage.setItem("popis",JSON.stringify(popis));}
+
+function openPopis(){
+ screenMasi.style.display="none";
+ screenPopis.style.display="block";
+ renderPopis();
+}
+
+function backFromPopis(){
+ screenPopis.style.display="none";
+ screenMasi.style.display="block";
+}
+
+function renderPopis(){
+ const d=document.getElementById("popisList");
+ d.innerHTML="";
+ for(let id in popis){
+  const p=popis[id];
+  d.innerHTML+=`
+  <div class="item">
+   <b>${p.name}</b>
+   <label>Залиха (пакети/парчиња)</label>
+   <input type="number" value="${p.stock}" onchange="pUpdate(${id},'stock',this.value)">
+   <label>Единица</label>
+   <select onchange="pUpdate(${id},'unit',this.value)">
+    <option value="gram" ${p.unit=="gram"?"selected":""}>gram</option>
+    <option value="piece" ${p.unit=="piece"?"selected":""}>piece</option>
+   </select>
+   <label>1 пакет има</label>
+   <input type="number" value="${p.packSize}" onchange="pUpdate(${id},'packSize',this.value)">
+   <label>Набавна цена (1 пакет)</label>
+   <input type="number" value="${p.buyPrice}" onchange="pUpdate(${id},'buyPrice',this.value)">
+   <label>Продажна порција</label>
+   <input type="number" value="${p.sellQty}" onchange="pUpdate(${id},'sellQty',this.value)">
+   <label>Продажна цена</label>
+   <input type="number" value="${p.sellPrice}" onchange="pUpdate(${id},'sellPrice',this.value)">
+  </div>`;
+ }
+}
+
+function pUpdate(id,key,val){
+ popis[id][key]=key=="unit"?val:Number(val);
+ savePopis();
+}
+
+// ================= МАСИ =================
+let masi = JSON.parse(localStorage.getItem("masi")) ||
+ Array.from({length:8},(_,i)=>({broj:i+1,naracki:[]}));
+
 let current=0;
 
-// ===== ПРОМЕТ =====
-function todayKey(){return "promet-"+new Date().toISOString().slice(0,10);}
-function getPromet(){return Number(localStorage.getItem(todayKey()))||0;}
-function addPromet(x){localStorage.setItem(todayKey(),getPromet()+x); renderPromet();}
-function renderPromet(){document.getElementById("promet").innerText=getPromet();}
-renderPromet();
-
-// ===== МАСИ =====
 function renderMasi(){
- const d=document.getElementById("masi"); d.innerHTML="";
+ const d=document.getElementById("masi");d.innerHTML="";
  masi.forEach((m,i)=>{
-  let div=document.createElement("div");
+  const div=document.createElement("div");
   div.className="masa"+(m.naracki.length?" zafatena":"");
   div.innerText="Маса "+m.broj;
   div.onclick=()=>openMasa(i);
@@ -112,148 +162,106 @@ function renderMasi(){
  });
 }
 renderMasi();
-function openMasa(i){current=i; screenMasi.style.display="none"; screenMasa.style.display="block"; document.getElementById("masaTitle").innerText="Маса "+masi[i].broj; renderMasa();}
-function backToMasi(){save(); screenMasa.style.display="none"; screenMasi.style.display="block"; renderMasi();}
 
-// ===== МЕНИ =====
-function openMenu(){screenMasa.style.display="none"; screenMenu.style.display="block"; renderMenu();}
-function backToMasa(){screenMenu.style.display="none"; screenMasa.style.display="block"; renderMasa();}
+function openMasa(i){
+ current=i;
+ screenMasi.style.display="none";
+ screenMasa.style.display="block";
+ masaTitle.innerText="Маса "+masi[i].broj;
+ renderMasa();
+}
+function backToMasi(){save();screenMasa.style.display="none";screenMasi.style.display="block";renderMasi();}
+
+function openMenu(){screenMasa.style.display="none";screenMenu.style.display="block";renderMenu();}
+function backToMasa(){screenMenu.style.display="none";screenMasa.style.display="block";renderMasa();}
+
+// ================= MENU =================
 function renderMenu(){
- const m=document.getElementById("menu"); m.innerHTML="";
- Object.keys(menu).forEach(cat=>{
-  m.innerHTML+=`<div class="dropdown" onclick="this.classList.toggle('open')">${cat}</div><div class="dropdown-items"></div>`;
- });
- document.querySelectorAll(".dropdown").forEach((d,i)=>{
-  let c=d.nextElementSibling;
-  let cat=Object.keys(menu)[i];
-  menu[cat].forEach(it=>{c.innerHTML+=`<div class="menu-item"><button class="green" onclick="addItem(${it.id})">${it.name}<br>${it.price} ден</button></div>`});
- });
-}
-
-// ===== ДОДАВАЊЕ =====
-function addItem(id){
- let item;
- for(let cat in menu){item=menu[cat].find(x=>x.id===id); if(item) break;}
- let n=masi[current].naracki.find(x=>x.id===id);
- if(n) n.qty++; else masi[current].naracki.push({...item,qty:1});
- save(); renderMasa();
-}
-
-// ===== МАСА =====
-function renderMasa(){
- const d=document.getElementById("items"); d.innerHTML="";
- let total=0;
- masi[current].naracki.forEach((n,i)=>{
-  total+=n.qty*n.price;
-  d.innerHTML+=`<div class="item">${n.name} <button onclick="changeQty(${i},-1)">−</button> ${n.qty} <button onclick="changeQty(${i},1)">+</button> ${n.qty*n.price} ден</div>`;
- });
- document.getElementById("total").innerText=total;
-}
-function changeQty(i,d){
- let n=masi[current].naracki[i]; n.qty+=d; if(n.qty<=0) masi[current].naracki.splice(i,1);
- renderMasa(); save();
-}
-
-// ===== ПЛАЌАЊЕ со автоматско одземање на залиха =====
-function clearMasa(){
- if(confirm("Да се наплати масата?")){
-  let s=0;
-  masi[current].naracki.forEach(n=>{
-   s += n.qty * n.price;
-   let p = popis[n.id];
-   let soldQty = n.qty;
-   if(p.unitType==="gram"){
-     soldQty = n.qty*(p.qtySell||n.qty);
-     let costPerGram = (p.priceBuy||0)/(p.qtyBuy||1);
-     p.qtyBuy -= soldQty;
-   } else {
-     p.qtyBuy -= soldQty;
-   }
-  });
-  addPromet(s);
-  saveReport(masi[current].naracki);
-  savePopis();
-  masi[current].naracki=[];
-  save(); backToMasi();
- }
-}
-
-// ===== ПОПИС =====
-function openPopis(){screenMasi.style.display="none"; screenPopis.style.display="block"; renderPopis();}
-function backFromPopis(){screenPopis.style.display="none"; screenMasi.style.display="block";}
-function renderPopis(){
- const d=document.getElementById("popisList"); d.innerHTML="";
+ const m=document.getElementById("menu");m.innerHTML="";
  for(let cat in menu){
-  d.innerHTML+=`<h3>${cat}</h3>`;
+  m.innerHTML+=`<div class="dropdown" onclick="this.classList.toggle('open')">${cat}</div><div class="dropdown-items"></div>`;
+ }
+ document.querySelectorAll(".dropdown").forEach((d,i)=>{
+  const cat=Object.keys(menu)[i];
+  const c=d.nextElementSibling;
   menu[cat].forEach(it=>{
-   let p=popis[it.id];
-   let currentStock = p.qtyBuy;
-   d.innerHTML+=`<div class="item">
-     ${it.name}<br>
-     Единица: 
-     <select onchange="updatePopisUnit(${it.id},this.value)">
-       <option value="gram" ${p.unitType==='gram'?'selected':''}>gram</option>
-       <option value="piece" ${p.unitType==='piece'?'selected':''}>piece</option>
-     </select><br>
-     Колку купувам: <input type="number" value="${p.qtyBuy||0}" onchange="updatePopisQtyBuy(${it.id},this.value)"><br>
-     Цена купување: <input type="number" value="${p.priceBuy||0}" onchange="updatePopisBuy(${it.id},this.value)"><br>
-     Колку продавам: <input type="number" value="${p.qtySell||0}" onchange="updatePopisQtySell(${it.id},this.value)"><br>
-     Цена продажба: <input type="number" value="${p.priceSell||it.price}" onchange="updatePopisSell(${it.id},this.value)"><br>
-     <b>Тековна залиха: ${currentStock}</b>
-   </div>`;
+   c.innerHTML+=`<button class="green" onclick="addItem(${it.id})">${it.name}<br>${it.price} ден</button>`;
   });
- }
-}
-function updatePopisUnit(id,value){ popis[id].unitType=value; savePopis();}
-function updatePopisQtyBuy(id,value){ popis[id].qtyBuy=Number(value); savePopis();}
-function updatePopisBuy(id,value){ popis[id].priceBuy=Number(value); savePopis();}
-function updatePopisQtySell(id,value){ popis[id].qtySell=Number(value); savePopis();}
-function updatePopisSell(id,value){ popis[id].priceSell=Number(value); savePopis();}
-function savePopis(){localStorage.setItem("popis",JSON.stringify(popis));}
-
-// ===== ИЗВЕШТАЈ =====
-function reportKey(date){return "report-"+date;}
-function saveReport(items){
- const date=new Date().toISOString().slice(0,10);
- let data=JSON.parse(localStorage.getItem(reportKey(date)))||{};
- items.forEach(n=>{
-  let category=""; for(let cat in menu){if(menu[cat].some(i=>i.id===n.id)){category=cat;break;}}
-  if(!data[category]) data[category]={};
-  if(!data[category][n.name]) data[category][n.name]={qty:0,sum:0,cost:0};
-  let p=popis[n.id];
-  let soldQty;
-  if(p.unitType==="gram"){
-    soldQty = n.qty*(p.qtySell||n.qty);
-    let costPerGram = (p.priceBuy||0)/(p.qtyBuy||1);
-    data[category][n.name].cost += soldQty * costPerGram;
-  } else {
-    soldQty = n.qty;
-    data[category][n.name].cost += soldQty*(p.priceBuy||0);
-  }
-  data[category][n.name].qty += soldQty;
-  data[category][n.name].sum += n.qty * n.price;
  });
- localStorage.setItem(reportKey(date),JSON.stringify(data));
 }
-function openReport(){screenMasi.style.display="none"; screenReport.style.display="block"; document.getElementById("reportDate").value=new Date().toISOString().slice(0,10); renderReport();}
-function backFromReport(){screenReport.style.display="none"; screenMasi.style.display="block";}
+
+function addItem(id){
+ const masa=masi[current];
+ const p=popis[id];
+ let n=masa.naracki.find(x=>x.id===id);
+ if(n) n.qty++;
+ else masa.naracki.push({id:id,name:p.name,price:p.sellPrice,qty:1});
+ renderMasa();save();
+}
+
+// ================= МАСА =================
+function renderMasa(){
+ const d=document.getElementById("items");d.innerHTML="";
+ let t=0;
+ masi[current].naracki.forEach(n=>{
+  t+=n.qty*n.price;
+  d.innerHTML+=`<div class="item">${n.name} × ${n.qty} = ${n.qty*n.price} ден</div>`;
+ });
+ total.innerText=t;
+}
+
+// ================= НАПЛАТА + ТРОШОК =================
+let report={};
+
+function clearMasa(){
+ let income=0,cost=0;
+ masi[current].naracki.forEach(n=>{
+  const p=popis[n.id];
+  const used=n.qty*p.sellQty;
+  const unitCost=p.buyPrice/p.packSize;
+  const itemCost=used*unitCost;
+  p.stock-=used/p.packSize;
+  income+=n.qty*n.price;
+  cost+=itemCost;
+
+  if(!report[n.name]) report[n.name]={qty:0,income:0,cost:0};
+  report[n.name].qty+=n.qty;
+  report[n.name].income+=n.qty*n.price;
+  report[n.name].cost+=itemCost;
+ });
+ savePopis();
+ localStorage.setItem("report",JSON.stringify(report));
+ masi[current].naracki=[];
+ save();backToMasi();
+}
+
+// ================= ИЗВЕШТАЈ =================
+function openReport(){
+ screenMasi.style.display="none";
+ screenReport.style.display="block";
+ renderReport();
+}
+function backFromReport(){
+ screenReport.style.display="none";
+ screenMasi.style.display="block";
+}
 function renderReport(){
- const date=document.getElementById("reportDate").value;
- const c=document.getElementById("reportContent"); c.innerHTML="";
- const data=JSON.parse(localStorage.getItem(reportKey(date)));
- if(!data){c.innerHTML="<p>Нема податоци за овој ден</p>"; return;}
- for(let cat in data){
-  c.innerHTML+=`<h3>${cat}</h3>`;
-  for(let item in data[cat]){
-   const x=data[cat][item];
-   const profit=x.sum-x.cost;
-   c.innerHTML+=`<div class="item">${item} – продадено: ${x.qty}, приход: ${x.sum} ден, трошок: ${x.cost} ден, профит: ${profit} ден</div>`;
-  }
+ const d=document.getElementById("reportContent");d.innerHTML="";
+ const r=JSON.parse(localStorage.getItem("report"))||{};
+ for(let i in r){
+  const x=r[i];
+  d.innerHTML+=`<div class="item">
+   ${i} – ${x.qty} продадени<br>
+   Приход: ${x.income.toFixed(0)}<br>
+   Трошок: ${x.cost.toFixed(0)}<br>
+   Профит: ${(x.income-x.cost).toFixed(0)}
+  </div>`;
  }
 }
 
-// ===== SAVE MASI =====
 function save(){localStorage.setItem("masi",JSON.stringify(masi));}
+
+initPopis();
 </script>
 </body>
 </html>
