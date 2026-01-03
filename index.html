@@ -60,39 +60,34 @@ input,select{padding:6px;border-radius:8px;border:1px solid #ccc;width:100%;marg
 <!-- ИЗВЕШТАЈ -->
 <div id="screenReport" style="display:none">
 <button onclick="backFromReport()">⬅ Назад</button>
-<h3>Дневен извештај</h3>
+<h3>Извештај по ден</h3>
+<input type="date" id="reportDate" onchange="renderReport()">
 <div id="reportContent"></div>
 </div>
 
 <script>
-// ================= MENU (НЕПРОМЕНЕТО) =================
-const menu = {
- "Пиво":[
-  {id:1,name:"Скопско",price:90},
-  {id:2,name:"Скопско Smooth",price:90},
-  {id:3,name:"Хајнекен",price:110}
- ],
- "Скара":[
-  {id:57,name:"Крилца",price:220},
-  {id:61,name:"Ребро",price:250}
- ]
+// ================= МЕНИ (СКРАТЕНО ЗА ПРИМЕР – ТИ ГО ИМАШ ЦЕЛОСНОТО) =================
+const menu={
+ "Пиво":[{id:1,name:"Скопско",price:90}],
+ "Скара":[{id:57,name:"Крилца",price:220}]
 };
 
 // ================= POPIS =================
-let popis = JSON.parse(localStorage.getItem("popis")) || {};
+let popis=JSON.parse(localStorage.getItem("popis"))||{};
 
 function initPopis(){
  for(let cat in menu){
-  menu[cat].forEach(i=>{
-   if(!popis[i.id]){
-    popis[i.id]={
-     name:i.name,
+  menu[cat].forEach(it=>{
+   if(!popis[it.id]){
+    popis[it.id]={
+     id:it.id,
+     name:it.name,
      unit:"gram",
      stock:0,
      packSize:0,
      buyPrice:0,
      sellQty:0,
-     sellPrice:i.price
+     sellPrice:it.price
     };
    }
   });
@@ -107,7 +102,6 @@ function openPopis(){
  screenPopis.style.display="block";
  renderPopis();
 }
-
 function backFromPopis(){
  screenPopis.style.display="none";
  screenMasi.style.display="block";
@@ -116,39 +110,37 @@ function backFromPopis(){
 function renderPopis(){
  const d=document.getElementById("popisList");
  d.innerHTML="";
- for(let id in popis){
-  const p=popis[id];
+ Object.values(popis).forEach(p=>{
   d.innerHTML+=`
   <div class="item">
    <b>${p.name}</b>
-   <label>Залиха (пакети/парчиња)</label>
-   <input type="number" value="${p.stock}" onchange="pUpdate(${id},'stock',this.value)">
+   <label>Залиха (пакети / парчиња)</label>
+   <input type="number" value="${p.stock}" onchange="pUpd(${p.id},'stock',this.value)">
    <label>Единица</label>
-   <select onchange="pUpdate(${id},'unit',this.value)">
+   <select onchange="pUpd(${p.id},'unit',this.value)">
     <option value="gram" ${p.unit=="gram"?"selected":""}>gram</option>
     <option value="piece" ${p.unit=="piece"?"selected":""}>piece</option>
    </select>
    <label>1 пакет има</label>
-   <input type="number" value="${p.packSize}" onchange="pUpdate(${id},'packSize',this.value)">
+   <input type="number" value="${p.packSize}" onchange="pUpd(${p.id},'packSize',this.value)">
    <label>Набавна цена (1 пакет)</label>
-   <input type="number" value="${p.buyPrice}" onchange="pUpdate(${id},'buyPrice',this.value)">
+   <input type="number" value="${p.buyPrice}" onchange="pUpd(${p.id},'buyPrice',this.value)">
    <label>Продажна порција</label>
-   <input type="number" value="${p.sellQty}" onchange="pUpdate(${id},'sellQty',this.value)">
+   <input type="number" value="${p.sellQty}" onchange="pUpd(${p.id},'sellQty',this.value)">
    <label>Продажна цена</label>
-   <input type="number" value="${p.sellPrice}" onchange="pUpdate(${id},'sellPrice',this.value)">
+   <input type="number" value="${p.sellPrice}" onchange="pUpd(${p.id},'sellPrice',this.value)">
   </div>`;
- }
+ });
 }
 
-function pUpdate(id,key,val){
- popis[id][key]=key=="unit"?val:Number(val);
+function pUpd(id,key,val){
+ popis[id][key]=(key=="unit")?val:Number(val);
  savePopis();
 }
 
 // ================= МАСИ =================
-let masi = JSON.parse(localStorage.getItem("masi")) ||
+let masi=JSON.parse(localStorage.getItem("masi"))||
  Array.from({length:8},(_,i)=>({broj:i+1,naracki:[]}));
-
 let current=0;
 
 function renderMasi(){
@@ -175,7 +167,6 @@ function backToMasi(){save();screenMasa.style.display="none";screenMasi.style.di
 function openMenu(){screenMasa.style.display="none";screenMenu.style.display="block";renderMenu();}
 function backToMasa(){screenMenu.style.display="none";screenMasa.style.display="block";renderMasa();}
 
-// ================= MENU =================
 function renderMenu(){
  const m=document.getElementById("menu");m.innerHTML="";
  for(let cat in menu){
@@ -191,15 +182,13 @@ function renderMenu(){
 }
 
 function addItem(id){
- const masa=masi[current];
  const p=popis[id];
- let n=masa.naracki.find(x=>x.id===id);
+ let n=masi[current].naracki.find(x=>x.id===id);
  if(n) n.qty++;
- else masa.naracki.push({id:id,name:p.name,price:p.sellPrice,qty:1});
+ else masi[current].naracki.push({id:id,name:p.name,price:p.sellPrice,qty:1});
  renderMasa();save();
 }
 
-// ================= МАСА =================
 function renderMasa(){
  const d=document.getElementById("items");d.innerHTML="";
  let t=0;
@@ -210,35 +199,32 @@ function renderMasa(){
  total.innerText=t;
 }
 
-// ================= НАПЛАТА + ТРОШОК =================
-let report={};
+// ================= ИЗВЕШТАЈ =================
+function reportKey(d){return"report-"+d;}
 
 function clearMasa(){
- let income=0,cost=0;
+ const date=new Date().toISOString().slice(0,10);
+ let data=JSON.parse(localStorage.getItem(reportKey(date)))||{};
  masi[current].naracki.forEach(n=>{
   const p=popis[n.id];
   const used=n.qty*p.sellQty;
-  const unitCost=p.buyPrice/p.packSize;
-  const itemCost=used*unitCost;
+  const cost=(p.buyPrice/p.packSize)*used;
   p.stock-=used/p.packSize;
-  income+=n.qty*n.price;
-  cost+=itemCost;
-
-  if(!report[n.name]) report[n.name]={qty:0,income:0,cost:0};
-  report[n.name].qty+=n.qty;
-  report[n.name].income+=n.qty*n.price;
-  report[n.name].cost+=itemCost;
+  if(!data[p.name])data[p.name]={qty:0,income:0,cost:0};
+  data[p.name].qty+=n.qty;
+  data[p.name].income+=n.qty*n.price;
+  data[p.name].cost+=cost;
  });
  savePopis();
- localStorage.setItem("report",JSON.stringify(report));
+ localStorage.setItem(reportKey(date),JSON.stringify(data));
  masi[current].naracki=[];
  save();backToMasi();
 }
 
-// ================= ИЗВЕШТАЈ =================
 function openReport(){
  screenMasi.style.display="none";
  screenReport.style.display="block";
+ reportDate.value=new Date().toISOString().slice(0,10);
  renderReport();
 }
 function backFromReport(){
@@ -246,21 +232,25 @@ function backFromReport(){
  screenMasi.style.display="block";
 }
 function renderReport(){
- const d=document.getElementById("reportContent");d.innerHTML="";
- const r=JSON.parse(localStorage.getItem("report"))||{};
- for(let i in r){
-  const x=r[i];
-  d.innerHTML+=`<div class="item">
-   ${i} – ${x.qty} продадени<br>
-   Приход: ${x.income.toFixed(0)}<br>
-   Трошок: ${x.cost.toFixed(0)}<br>
-   Профит: ${(x.income-x.cost).toFixed(0)}
-  </div>`;
+ const d=document.getElementById("reportContent");
+ d.innerHTML="";
+ const date=reportDate.value;
+ const data=JSON.parse(localStorage.getItem(reportKey(date)));
+ if(!data){d.innerHTML="Нема податоци";return;}
+ for(let k in data){
+  const x=data[k];
+  d.innerHTML+=`
+   <div class="item">
+    <b>${k}</b><br>
+    Продадени: ${x.qty}<br>
+    Приход: ${x.income.toFixed(0)}<br>
+    Трошок: ${x.cost.toFixed(0)}<br>
+    Профит: ${(x.income-x.cost).toFixed(0)}
+   </div>`;
  }
 }
 
 function save(){localStorage.setItem("masi",JSON.stringify(masi));}
-
 initPopis();
 </script>
 </body>
