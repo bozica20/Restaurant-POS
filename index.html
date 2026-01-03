@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="mk">
 <head>
@@ -429,6 +430,16 @@ function renderReport(){
   c.innerHTML="<p>Нема податоци за овој ден</p>";
   return;
  }
+
+ for(let cat in data){
+  c.innerHTML+=`<h3>${cat}</h3>`;
+  for(let item in data[cat]){
+   const x=data[cat][item];
+   c.innerHTML+=`
+    <div class="item">
+     ${item} – ${x.qty} × = ${x.sum} ден
+    </div>`;
+  }
  }
 }
 </script>
